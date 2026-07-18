@@ -1,0 +1,108 @@
+[workspace]
+members = ["crates/*"]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+rust-version = "1.85"
+license = "Elastic-2.0"
+
+[workspace.dependencies]
+anyhow = "1"
+thiserror = "2"
+clap = { version = "4", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+hound = "3.5"
+# Ogg-Opus mixdown codec (replaces shine-rs LGPL MP3 encoder).
+# `opus` = MIT/Apache-2.0 bindings to libopus (BSD-3-Clause). `ogg` = BSD-3-Clause muxer.
+# `minimp3` = CC0/MIT decoder, used only by the one-shot mp3->opus migration.
+opus = "0.3"
+ogg = "0.9"
+minimp3 = "0.5"
+# GPU/BLAS accel is per-platform — see the target-specific whisper-rs entries
+# in crates/providers-local/Cargo.toml (metal on macOS, vulkan+openblas on
+# Linux, vulkan on Windows).
+# `log_backend` redirects whisper.cpp + ggml stderr noise (whisper_init_state /
+# whisper_backend_init lines, dozens per Whisper invocation) into the Rust `log`
+# crate, where the dual-sink dispatcher in tauri-app filters them out of the
+# console and dumps them in the per-session log file at DEBUG.
+whisper-rs = { version = "0.16", features = ["log_backend"] }
+pipewire = "0.8"
+log = "0.4"
+# env_logger stays in the workspace for daisy-cli + test fixtures (audio-engine,
+# recording). tauri-app itself uses fern (below) for the dual-sink dispatcher;
+# env_logger is gone from the daisy-app binary.
+env_logger = "0.11"
+# fern: dual-sink log dispatcher (console = WARN+, file = INFO+ / DEBUG+ when
+# debug_logging is set). Used by daisy-app so the AppImage no longer dumps
+# 400× whisper_backend_init lines to the terminal — those land in the rotating
+# <profile>/logs/daisy.log instead.
+fern = { version = "0.7", features = ["date-based"] }
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+# ONNX Runtime for aec (DTLN), voiceprints (WeSpeaker), embeddings (BGE/Q&A).
+# `download-binaries` fetches a prebuilt libonnxruntime at build time and
+# places it next to the binary (Linux: target/<profile>/libonnxruntime.so —
+# repack-appimage.sh bundles it; Windows: build-release.ps1 copies the DLL).
+# We previously used `load-dynamic` because the sherpa-onnx (Zipformer) crate
+# shipped its OWN ORT 1.24 and a second static copy collided at link time.
+# Sherpa was removed (live captions moved off-device), so `ort` is now the
+# sole ORT provider and download-binaries is safe again.
+ort = { version = "=2.0.0-rc.12", default-features = false, features = ["std", "download-binaries", "api-24", "tls-rustls"] }
+ndarray = "0.17"
+# DeepFilterNet3 noise suppression (finalize-only mic denoise → opus + diarize).
+# Git-pinned: crates.io's deep_filter is stale 0.2.5; repo master is 0.5.7-pre.
+# tract feature = pure-Rust ONNX inference (compile-time dep, nothing to ship).
+# default-model-LL embeds the ~36 MB DFN3 *low-latency* model: under the only
+# tract version deep_filter compiles against (=0.21.5, see crates/denoise),
+# standard DFN3 fails tract's codegen ("duplicate name /convt3/Conv.bias") and
+# DFN2 panics tract — DFN3-ll is the one variant that loads. Batch quality
+# difference vs standard DFN3 is just reduced lookahead.
+deep_filter = { git = "https://github.com/Rikorose/DeepFilterNet", rev = "d375b2d8309e0935d165700c91da9de862a99c31", default-features = false, features = ["tract", "default-model-ll", "transforms"] }
+# HuggingFace tokenizers (Rust impl), needed by the BGE-small embedding model.
+# `onig` feature avoids fancy-regex's binary-size hit; cross-platform.
+tokenizers = { version = "0.21", default-features = false, features = ["onig"] }
+rustfft = "6"
+num-complex = "0.4"
+crossbeam-channel = "0.5"
+tempfile = "3"
+ctrlc = { version = "3", features = ["termination"] }
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "multipart", "native-tls", "stream"] }
+mockito = "1"
+directories = "5"
+# `devtools` feature compiled in so F12 opens the WebView inspector in
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-build = { version = "2" }
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros", "sync", "time", "net"] }
+argon2 = "0.5"
+aes-gcm = "0.10"
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+sha2 = "0.10"
+rand = "0.9"
+base64 = "0.22"
+# Loopback MCP server (crates/tauri-app/src/mcp/) — HTTP layer only.
+axum = "0.8"
+zeroize = { version = "1", features = ["derive"] }
+futures-util = "0.3"
+async-trait = "0.1"
+tauri-plugin-dialog = "2"
+zxcvbn = "3"
+walkdir = "2"
+uuid = { version = "1", features = ["v4", "serde"] }
+rayon = "1"
+# Import decode for user-supplied audio (mp3/m4a-aac/flac/wav/ogg). MPL-2.0
+# (weak, file-level copyleft — OK to ship proprietary). Decode-only; we still
+# never *encode* MP3 (no GPL/LGPL encoder in the tree).
+symphonia = { version = "0.5", default-features = false, features = ["aac", "isomp4", "mp3", "flac", "ogg", "vorbis", "wav", "pcm", "alac"] }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true       # drop debug symbols — smaller binary, fewer readable names
+
+# Temporary vendored speakrs with a one-line patch: cap ORT-CPU sessions to
+# Level1 graph-opt so the FBANK session doesn't fuse into FusedConv (whose kernel
+# is missing from the app's ORT binary on macOS aarch64 -> crash). Drop this once
+# the fix is upstreamed to avencera/speakrs. See vendor/speakrs/src/inference.rs.
+[patch.crates-io]
+speakrs = { path = "vendor/speakrs" }

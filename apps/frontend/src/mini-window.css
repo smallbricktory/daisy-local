@@ -1,0 +1,40 @@
+/* Mini-window scoped resets (html.is-mini set in main.tsx). Light theme;
+   workspace.css vars are available — the mini loads the same bundle. No
+   `color-scheme` override: a dark value renders the whole window canvas
+   black. */
+html.is-mini, html.is-mini body, html.is-mini #root { margin: 0; height: 100%; overflow: hidden; }
+
+.mini {
+  display: flex; flex-direction: column; height: 100vh;
+  background: var(--cream); color: var(--ink);
+  font: 12px/1.4 system-ui, sans-serif;
+  box-sizing: border-box;
+}
+.mini__bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 8px; background: var(--cream-pure);
+  border-bottom: 1px solid var(--frost-deep);
+  cursor: grab; user-select: none;
+}
+.mini__dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); flex: none; }
+.mini__dot--rec { background: var(--record); box-shadow: 0 0 6px 1px rgba(215, 38, 61, 0.5); }
+.mini__dot--paused { background: var(--amber); box-shadow: none; }
+.mini__time { font-variant-numeric: tabular-nums; font-weight: 600; }
+.mini__mode { color: var(--muted); font-size: 11px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mini__expand { margin-left: auto; background: none; border: none; color: var(--muted);
+  cursor: pointer; font-size: 14px; line-height: 1; flex: none; }
+.mini__expand:hover { color: var(--ink); }
+.mini__transcript { flex: 1; overflow-y: auto; padding: 5px 8px; }
+.mini__transcript p { margin: 0 0 3px; }
+.mini__placeholder { color: var(--muted); font-style: italic; }
+.mini__interim { color: var(--muted); }
+.mini__controls { display: flex; gap: 6px; padding: 5px 8px;
+  background: var(--cream-pure); border-top: 1px solid var(--frost-deep); }
+.mini__btn { flex: 1; padding: 4px; border: 1px solid var(--frost-deep); border-radius: 5px;
+  background: var(--cream-pure); color: var(--ink); cursor: pointer; font-size: 12px; }
+.mini__btn:hover { background: var(--tint); }
+.mini__btn--stop { color: var(--danger); border-color: var(--danger); }
+.mini__btn--rec { color: #fff; background: var(--record); border-color: var(--record); font-weight: 600; }
+.mini__btn--rec:hover:not(:disabled) { filter: brightness(0.94); background: var(--record); }
+.mini__btn--rec:disabled { opacity: 0.6; cursor: default; }

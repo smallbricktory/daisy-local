@@ -1,0 +1,18 @@
+# macOS: the audio-engine links a static Swift shim (ScreenCaptureKit capture),
+# which pulls in the Swift runtime dylibs (libswiftCore, libswift_Concurrency, …).
+# Those are @rpath-referenced and OS-provided at /usr/lib/swift (served from the
+# dyld shared cache on macOS 15+). Without an LC_RPATH the final binaries
+# (daisy-app and the `daisy` CLI sidecar) crash at launch:
+#   dyld: Library not loaded: @rpath/libswift_Concurrency.dylib — no LC_RPATH's found
+# build.rs can't supply this — `cargo:rustc-link-arg` from a dependency build
+# script does NOT propagate to the dependent binary's link — so set it here.
+# Scoped to the Apple-Silicon target; Linux/Windows builds are unaffected.
+[target.aarch64-apple-darwin]
+rustflags = ["-C", "link-arg=-Wl,-rpath,/usr/lib/swift"]
+
+# whisper-rs-sys's OpenBLAS build (unconditional on Linux, see
+# providers-local/Cargo.toml) wants explicit BLAS header paths even with
+# libopenblas-dev installed — it doesn't probe pkg-config. Ubuntu ships
+# cblas.h under the multiarch include dir. Unused on macOS/Windows.
+[env]
+BLAS_INCLUDE_DIRS = "/usr/include/x86_64-linux-gnu"

@@ -1,0 +1,139 @@
+name: ci
+
+# Runs on self-hosted runners (one Linux, one Windows). If a runner is
+# offline the job stays queued — check GitHub → Settings → Actions →
+# Runners.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  version-guard:
+    name: version guard
+    runs-on: [self-hosted, Linux, X64]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # need tags for the untagged-version notice
+      - name: Cargo + tauri.conf versions must match
+        run: |
+          CRATE="$(grep -m1 '^version' crates/tauri-app/Cargo.toml | sed -E 's/.*"([^"]+)".*/\1/')"
+          CONF="$(grep -m1 '"version"' crates/tauri-app/tauri.conf.json | sed -E 's/.*"version"[^"]*"([^"]+)".*/\1/')"
+          echo "crate=$CRATE  tauri.conf=$CONF"
+          if [ "$CRATE" != "$CONF" ]; then
+            echo "::error::version drift — Cargo.toml ($CRATE) != tauri.conf.json ($CONF). Bump both together."
+            exit 1
+          fi
+      - name: Notice if this version is untagged (push only, non-blocking)
+        run: |
+          [ "$GITHUB_EVENT_NAME" = push ] || exit 0
+          CRATE="$(grep -m1 '^version' crates/tauri-app/Cargo.toml | sed -E 's/.*"([^"]+)".*/\1/')"
+          if git rev-parse -q --verify "refs/tags/v$CRATE" >/dev/null; then
+            echo "v$CRATE is tagged"
+          else
+            echo "::warning::version $CRATE on main has no v$CRATE tag yet — tag it to publish: git tag -a v$CRATE -m '…' && git push origin v$CRATE"
+          fi
+
+  linux:
+    name: linux (full workspace)
+    runs-on: [self-hosted, Linux, X64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 10
+      # The self-hosted runner has the system deps (libpipewire-0.3-dev,
+      # etc.) pre-installed via scripts/setup-dev.sh; there is no apt-get
+      # step. A new system lib is installed on the host once.
+      - name: Install frontend deps
+        run: pnpm --dir apps/frontend install --frozen-lockfile
+      - name: Build frontend
+        run: pnpm --dir apps/frontend build
+      - name: Typecheck frontend
+        run: pnpm --dir apps/frontend exec tsc --noEmit
+      - name: Frontend tests
+        run: pnpm --dir apps/frontend test
+      # Real-engine bubble/layout geometry — WebKitGTK is what the shipped
+      # Linux app renders with and jsdom can't see engine layout bugs.
+      # Browser binaries cache under ~/.cache/ms-playwright on the runner;
+      # WebKit's system libs are installed on the host once (apt).
+      - name: Frontend WebKit layout checks
+        run: |
+          pnpm --dir apps/frontend exec playwright install webkit chromium
+          pnpm --dir apps/frontend run test:webkit
+      # Staging daisy-cli mirrors the release scripts' layout (dist ships
+      # the CLI beside the app); the workspace build itself doesn't need it.
+      - name: Stage daisy-cli sidecar for tauri-app
+        run: |
+          cargo build --release -p daisy-cli --locked
+          mkdir -p crates/tauri-app/binaries
+          cp -f target/release/daisy crates/tauri-app/binaries/daisy-x86_64-unknown-linux-gnu
+      # tauri.conf.json's bundle.resources includes the WeSpeaker diarization
+      # model so it ships in the AppImage/.deb. Same step build-inside.sh runs
+      # for release builds — CI's `cargo build` resolves resource paths too.
+      - name: Stage voiceprints model for tauri-app
+        run: bash scripts/download-voiceprints.sh
+      # tauri.conf.json bundle.resources also references the embeddings model.
+      - name: Stage embeddings model
+        run: bash scripts/download-embeddings.sh
+      # tauri.conf.json bundle.resources also references the whisper model
+      # files; `cargo build --workspace` requires them present.
+      - name: Stage whisper model
+        run: bash scripts/download-whisper.sh
+      - name: Build workspace
+        run: cargo build --workspace --locked
+      - name: Run workspace tests
+        # audio-engine + recording have env-dependent tests that need a
+        # PipeWire daemon (virtual_sink_test) or a real audio device
+        # (compress::snap_bitrate). They fail in headless runs; skip the
+        # affected crates here, run them locally before release.
+        run: cargo test --workspace --lib --tests --exclude audio-engine --exclude recording
+
+  windows:
+    name: windows (portable crates + audio-engine seam)
+    runs-on: [self-hosted, Windows, X64]
+    steps:
+      - uses: actions/checkout@v4
+      # providers-local's Windows whisper backend is Vulkan (unconditional
+      # target dep) — same needs as scripts/build-release.ps1: the runner's
+      # Vulkan SDK on PATH (service shells don't inherit VULKAN_SDK) and a
+      # short target dir (whisper.cpp's vulkan-shaders-gen overflows MAX_PATH
+      # under the deep runner workspace path; even D:\bt is one char too
+      # long, so this must stay a single-character dir).
+      - name: Vulkan SDK env + short target dir
+        run: |
+          if (-not $env:VULKAN_SDK) {
+            $vk = Get-ChildItem 'C:\VulkanSDK' -Directory -ErrorAction SilentlyContinue |
+                  Sort-Object Name -Descending | Select-Object -First 1
+            if ($vk) { $env:VULKAN_SDK = $vk.FullName }
+          }
+          if ($env:VULKAN_SDK) {
+            "VULKAN_SDK=$($env:VULKAN_SDK)" >> $env:GITHUB_ENV
+            "$($env:VULKAN_SDK)\Bin" >> $env:GITHUB_PATH
+          }
+          "CARGO_TARGET_DIR=D:\c" >> $env:GITHUB_ENV
+      # The audio-engine crate uses PipeWire only on Linux via
+      # #[cfg(target_os = "linux")] gates. This step checks the seam:
+      # a stray `pipewire::` reference outside a gate fails this build.
+      - name: Cross-build audio-engine
+        run: cargo check -p audio-engine
+      # Every other crate is platform-portable. A new dep that pulls a
+      # Linux-only system library fails here.
+      - name: Build portable crates
+        run: |
+          cargo build -p transcript -p providers-http -p providers-local `
+            -p summarize -p vault -p aec -p embeddings -p voiceprints
+      - name: Run portable-crate tests
+        run: |
+          cargo test --lib --tests `
+            -p transcript -p providers-http -p providers-local `
+            -p summarize -p vault -p aec -p embeddings -p voiceprints

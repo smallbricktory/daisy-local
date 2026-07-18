@@ -1,0 +1,62 @@
+[package]
+name = "audio-engine"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+build = "build.rs"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+anyhow.workspace = true
+thiserror.workspace = true
+clap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+hound.workspace = true
+log.workspace = true
+env_logger.workspace = true
+bytemuck = "1"
+aec = { path = "../aec" }
+ctrlc.workspace = true
+tokio.workspace = true
+
+# PipeWire is only available on Linux. The audio backend is feature-gated
+# per target so the crate still compiles on Windows / macOS — those builds
+# get a stub backend that returns NotSupported until a native impl lands.
+[target.'cfg(target_os = "linux")'.dependencies]
+pipewire.workspace = true
+
+# Windows backend: WASAPI via windows-rs, with rubato for sample-rate
+# conversion from the device-native rate (commonly 48 kHz) down to the
+# 16 kHz mono int16 that WavFrameWriter expects.
+[target.'cfg(target_os = "windows")'.dependencies]
+windows = { version = "0.59", features = [
+  "Win32_Foundation",
+  "Win32_Media_Audio",
+  "Win32_Media_Audio_Endpoints",
+  "Win32_Media_KernelStreaming",
+  "Win32_Media_Multimedia",
+  "Win32_System_Com",
+  "Win32_System_Com_StructuredStorage",
+  "Win32_System_Threading",
+  "Win32_System_Variant",
+  "Win32_UI_Shell_PropertiesSystem",
+  "Win32_Devices_FunctionDiscovery",
+  "Win32_Devices_Properties",
+] }
+rubato = "0.16"
+
+# macOS backend: a Swift shim (Core Audio process tap + AVAudioEngine) delivers
+# device-rate f32 PCM; rubato converts to the 16 kHz mono int16 WavFrameWriter expects.
+[target.'cfg(target_os = "macos")'.dependencies]
+rubato = "0.16"
+
+[dev-dependencies]
+pretty_assertions = "1"
+tempfile = "3"
+aec = { path = "../aec" }
+hound.workspace = true

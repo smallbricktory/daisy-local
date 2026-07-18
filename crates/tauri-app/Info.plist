@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!--
+    Tauri merges this Info.plist into the bundled macOS app. The audio-only
+    backend uses TWO distinct TCC services, each needing its own usage string or
+    the OS silently denies (feeds zeros) instead of prompting:
+      - NSMicrophoneUsageDescription  -> AVAudioEngine mic input (the room).
+      - NSAudioCaptureUsageDescription -> Core Audio process tap for the system
+        audio mix (the remote side). Verified on hardware: without this key the
+        tap is granted-but-silent. No screen-recording consent is needed.
+  -->
+  <key>NSMicrophoneUsageDescription</key>
+  <string>Daisy records your microphone so it can transcribe and summarize your meetings. Audio stays on your device.</string>
+  <key>NSAudioCaptureUsageDescription</key>
+  <string>Daisy records this computer's audio (the people you're meeting with) so it can transcribe and summarize your meetings. Audio stays on your device.</string>
+</dict>
+</plist>

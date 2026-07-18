@@ -1,0 +1,77 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Daisy",
+  "version": "2.0.0",
+  "identifier": "ai.daisy.app",
+  "build": {
+    "beforeDevCommand": "pnpm --dir ../../apps/frontend dev",
+    "beforeBuildCommand": "",
+    "frontendDist": "../../apps/frontend/dist",
+    "devUrl": "http://localhost:5173"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Daisy",
+        "dragDropEnabled": false,
+        "width": 1100,
+        "height": 720,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; connect-src ipc: http://ipc.localhost; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'self' blob:; object-src 'none'; frame-src 'none'",
+      "devCsp": "default-src 'self'; connect-src ipc: http://ipc.localhost ws://localhost:5173 http://localhost:5173; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'self' blob:; object-src 'none'; frame-src 'none'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "targets": "all",
+    "resources": {
+      "../../models/voiceprints/model.onnx": "models/voiceprints/model.onnx",
+      "../../models/whisper/ggml-base.en.bin": "models/whisper/ggml-base.en.bin",
+      "../../models/dtln-aec/model_256_1.onnx": "models/dtln-aec/model_256_1.onnx",
+      "../../models/dtln-aec/model_256_2.onnx": "models/dtln-aec/model_256_2.onnx",
+      "../../models/embeddings/model.onnx": "models/embeddings/model.onnx",
+      "../../models/embeddings/tokenizer.json": "models/embeddings/tokenizer.json",
+      "../../models/embeddings/config.json": "models/embeddings/config.json",
+      "../../models/speakrs/segmentation-3.0.onnx": "models/speakrs/segmentation-3.0.onnx",
+      "../../models/speakrs/wespeaker-voxceleb-resnet34.onnx": "models/speakrs/wespeaker-voxceleb-resnet34.onnx",
+      "../../models/speakrs/wespeaker-voxceleb-resnet34.onnx.data": "models/speakrs/wespeaker-voxceleb-resnet34.onnx.data",
+      "../../models/speakrs/wespeaker-voxceleb-resnet34.min_num_samples.txt": "models/speakrs/wespeaker-voxceleb-resnet34.min_num_samples.txt",
+      "../../models/speakrs/plda_lda.npy": "models/speakrs/plda_lda.npy",
+      "../../models/speakrs/plda_mean1.npy": "models/speakrs/plda_mean1.npy",
+      "../../models/speakrs/plda_mean2.npy": "models/speakrs/plda_mean2.npy",
+      "../../models/speakrs/plda_mu.npy": "models/speakrs/plda_mu.npy",
+      "../../models/speakrs/plda_psi.npy": "models/speakrs/plda_psi.npy",
+      "../../models/speakrs/plda_tr.npy": "models/speakrs/plda_tr.npy",
+      "../../THIRD-PARTY-LICENSES.txt": "THIRD-PARTY-LICENSES.txt",
+      "../../LICENSE": "LICENSE"
+    },
+    "windows": {
+      "nsis": {
+        "installerIcon": "icons/icon.ico",
+        "installMode": "currentUser",
+        "languages": [
+          "English"
+        ],
+        "displayLanguageSelector": false
+      }
+    },
+    "macOS": {
+      "minimumSystemVersion": "15.0",
+      "entitlements": "Daisy.entitlements"
+    },
+    "shortDescription": "Local-first meeting recorder, transcriber & summarizer",
+    "longDescription": "Daisy records your meetings, transcribes and diarizes them on-device, and writes AI summaries \u2014 local-first and private.",
+    "licenseFile": "../../LICENSE"
+  }
+}

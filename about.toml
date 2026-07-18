@@ -1,0 +1,26 @@
+# SPDX identifiers Daisy is willing to ship. Anything outside this list
+# fails `cargo about generate` so we don't accidentally ship a copyleft dep.
+accepted = [
+    "Elastic-2.0",
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "BSL-1.0",
+    "ISC",
+    "Unicode-DFS-2016",
+    "Unicode-3.0",
+    "Zlib",
+    "CC0-1.0",
+    "MPL-2.0",
+    "0BSD",
+    "OpenSSL",
+    "CDLA-Permissive-2.0",
+    "Unlicense",
+]
+
+# Some crates ship without a license file but their license is well-known.
+# (We do this only for clear-cut cases; anything ambiguous should fail.)
+[ring]
+accepted = ["ISC", "MIT", "OpenSSL"]

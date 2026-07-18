@@ -1,0 +1,102 @@
+[package]
+name = "tauri-app"
+version = "2.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[lib]
+name = "tauri_app_core"
+path = "src/lib.rs"
+
+[[bin]]
+name = "daisy-app"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build.workspace = true
+
+[dependencies]
+recording = { path = "../recording" }
+syncsafe = { path = "../syncsafe" }
+summarize = { path = "../summarize" }
+transcript = { path = "../transcript" }
+providers-http = { path = "../providers-http" }
+providers-local = { path = "../providers-local" }
+providers-realtime = { path = "../providers-realtime" }
+audio-engine = { path = "../audio-engine" }
+embeddings = { path = "../embeddings" }
+voiceprints = { path = "../voiceprints" }
+vault = { path = "../vault" }
+uuid.workspace = true
+zeroize.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+log.workspace = true
+fern.workspace = true
+chrono.workspace = true
+whisper-rs = { workspace = true }
+directories.workspace = true
+rayon.workspace = true
+tauri.workspace = true
+tauri-plugin-dialog.workspace = true
+tokio.workspace = true
+walkdir.workspace = true
+reqwest.workspace = true
+hound.workspace = true
+sysinfo = "0.33"
+# Vulkan bindings for the GPU probe (hardware.rs). Loads libvulkan at
+# RUNTIME; asks the loader for a discrete GPU, mirroring what the whisper
+# Vulkan backend will find.
+ash = { version = "0.38", default-features = false, features = ["loaded", "std"] }
+base64.workspace = true
+ed25519-dalek.workspace = true
+rand.workspace = true
+sha2.workspace = true
+axum.workspace = true
+futures-util.workspace = true
+tauri-plugin-clipboard-manager = "2.3.2"
+# Native "already running" dialog for the single-instance guard. It fires before
+# the webview exists, so it can't be the in-app themed UI — a native OS dialog is
+# the best available, on every platform. rfd is already in the tree via
+# tauri-plugin-dialog, which selects the backend (gtk3 on Linux, native on
+# win/mac). default-features = false so we DON'T also pull rfd's xdg-portal
+# backend — rfd refuses gtk3 + xdg-portal together.
+rfd = { version = "0.16", default-features = false }
+
+# Linux-only: webkit2gtk drives Tauri's webview on Linux (via wry). We poke
+# its settings to enable getUserMedia and auto-grant the
+# UserMediaPermissionRequest so the in-app mic-level meters work.
+# Version must match what wry uses internally — see Cargo.lock.
+[target.'cfg(target_os = "linux")'.dependencies]
+webkit2gtk = "2.0"
+# Used by telemetry.rs sysconf calls (_SC_CLK_TCK, _SC_PAGESIZE) for CPU%
+# computation from /proc/self/stat.
+libc = "0.2"
+
+# hardware::has_battery() uses GetSystemPowerStatus to detect laptops.
+[target.'cfg(target_os = "windows")'.dependencies]
+windows = { version = "0.59", features = ["Win32_Foundation", "Win32_System_Power"] }
+# Direct MachineGuid read for the machine-mode vault key — avoids a slow/fragile
+# `powershell` spawn at startup that raced the vault auto-unlock.
+winreg = "0.55"
+
+
+[features]
+# Enable Tauri's `custom-protocol` so release builds serve the embedded
+# frontendDist via the `tauri://` scheme. Without this, tauri-build sets
+# cfg(dev) on every build and the webview tries to load http://localhost:5173,
+# which only exists when Vite is running. `cargo tauri build` sets this for
+# you; plain `cargo build --release --features custom-protocol` needs the flag
+# (or make this a default feature, but then `cargo tauri dev` would have to
+# disable it explicitly).
+custom-protocol = ["tauri/custom-protocol"]
+# Whisper GPU/BLAS backends are per-platform target dependencies in
+# providers-local/Cargo.toml; see that file for the build-time requirements.
+
+[dev-dependencies]
+tempfile.workspace = true
+env_logger.workspace = true
+mockito.workspace = true

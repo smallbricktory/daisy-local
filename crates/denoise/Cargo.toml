@@ -1,0 +1,26 @@
+[package]
+name = "denoise"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+deep_filter = { workspace = true }
+hound = { workspace = true }
+# Deliberately NOT the workspace ndarray (0.17): deep_filter's API surface is
+# ndarray ^0.15, and this crate only exchanges arrays with deep_filter.
+ndarray = "0.15"
+# Force the tract tree deep_filter compiles against. deep_filter d375b2d8 asks
+# for ^0.21.4 but: 0.21.4 hits a codegen bug loading the DFN3 model
+# ("duplicate name /convt3/Conv.bias"), and >=0.21.7 switched to ndarray 0.16,
+# which breaks deep_filter's ndarray-0.15 API. 0.21.5/0.21.6 is the window.
+tract-core = "=0.21.5"
+tract-onnx = "=0.21.5"
+tract-pulse = "=0.21.5"
+tract-hir = "=0.21.5"
+thiserror = { workspace = true }
+log = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

@@ -1,0 +1,41 @@
+[package]
+name = "voiceprints"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+[dev-dependencies]
+serde_json.workspace = true
+
+# Diagnostic/analysis tools live in the repo-root `diagnostics/` folder (kept
+# separate from shippable code), wired here as examples so they stay buildable:
+#   cargo run --release -p voiceprints --example denoise_diar_ab -- <session_dir>
+[[example]]
+name = "denoise_diar_ab"
+path = "../../diagnostics/denoise_diar_ab.rs"
+
+[dependencies]
+anyhow.workspace = true
+thiserror.workspace = true
+serde.workspace = true
+log.workspace = true
+ort.workspace = true
+ndarray.workspace = true
+hound.workspace = true
+rustfft.workspace = true
+num-complex.workspace = true
+# Speakrs-backed diarization (pyannote community-1 pipeline). `online` (HF
+# download) is OFF — models ship bundled (SPEAKRS_MODELS_DIR), so from_dir is the
+# only loader and hf-hub isn't pulled in. Keep default-linalg (BLAS backend:
+# intel-mkl-static x86_64 / openblas-static aarch64). ExecutionMode is chosen
+# per-platform in speakrs_diar.rs.
+speakrs = { version = "0.4", default-features = false, features = ["default-linalg"] }
+
+# macOS: also enable native CoreML (ANE/GPU). Cargo unions features across the
+# base + this entry; objc2 deps stay off Linux/Windows.
+[target.'cfg(target_os = "macos")'.dependencies]
+speakrs = { version = "0.4", default-features = false, features = ["default-linalg", "coreml"] }

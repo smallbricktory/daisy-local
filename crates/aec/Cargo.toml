@@ -1,0 +1,23 @@
+[package]
+name = "aec"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+anyhow.workspace = true
+thiserror.workspace = true
+hound.workspace = true
+log.workspace = true
+ort.workspace = true
+ndarray.workspace = true
+rustfft.workspace = true
+num-complex.workspace = true
+
+[dev-dependencies]
+pretty_assertions = "1"
+tempfile = "3"

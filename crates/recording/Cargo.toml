@@ -1,0 +1,33 @@
+[package]
+name = "recording"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+audio-engine = { path = "../audio-engine" }
+aec = { path = "../aec" }
+denoise = { path = "../denoise" }
+providers-realtime = { path = "../providers-realtime" }
+transcript = { path = "../transcript" }
+syncsafe = { path = "../syncsafe" }
+anyhow.workspace = true
+thiserror.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+hound.workspace = true
+opus.workspace = true
+ogg.workspace = true
+log.workspace = true
+crossbeam-channel.workspace = true
+tokio.workspace = true
+uuid = { workspace = true }
+rayon.workspace = true
+symphonia.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+env_logger.workspace = true
+hound.workspace = true
+tokio = { workspace = true, features = ["test-util", "macros"] }

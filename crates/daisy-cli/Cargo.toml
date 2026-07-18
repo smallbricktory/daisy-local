@@ -1,0 +1,42 @@
+[package]
+name = "daisy-cli"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "daisy"
+path = "src/bin/daisy.rs"
+
+[dependencies]
+anyhow.workspace = true
+thiserror.workspace = true
+clap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+hound.workspace = true
+log.workspace = true
+env_logger.workspace = true
+bytemuck = "1"
+aec = { path = "../aec" }
+audio-engine = { path = "../audio-engine" }
+recording = { path = "../recording" }
+providers-http = { path = "../providers-http" }
+providers-local = { path = "../providers-local" }
+transcript = { path = "../transcript" }
+summarize = { path = "../summarize" }
+vault = { path = "../vault" }
+zeroize = { workspace = true }
+rpassword = "7"
+reqwest.workspace = true
+directories.workspace = true
+ctrlc.workspace = true
+crossbeam-channel.workspace = true
+ed25519-dalek.workspace = true
+rand.workspace = true
+base64.workspace = true
+
+[dev-dependencies]
+pretty_assertions = "1"
+tempfile = "3"
