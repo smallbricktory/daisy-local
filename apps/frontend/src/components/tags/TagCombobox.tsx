@@ -7,7 +7,7 @@ export function TagCombobox({ excludeIds, onPick }: { excludeIds: string[]; onPi
   const [query, setQuery] = useState('');
   const [options, setOptions] = useState<Tag[]>([]);
   const [creating, setCreating] = useState(false);
-  const [newColor, setNewColor] = useState('#FF6A00');
+  const [newColor, setNewColor] = useState('#F2A900');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const boxRef = useRef<HTMLDivElement>(null);

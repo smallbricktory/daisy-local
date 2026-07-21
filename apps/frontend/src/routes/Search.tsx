@@ -364,7 +364,7 @@ export function Search({ initialQuery, onOpenSession, onNavigateToProviders }: P
           <div style={{
             fontFamily: 'var(--font-mono)', fontSize: 10,
             letterSpacing: '0.14em', textTransform: 'uppercase',
-            color: 'var(--sunset)', marginBottom: 8,
+            color: 'var(--marigold-deep)', marginBottom: 8,
           }}>Answer · streaming…</div>
           <div style={{ fontSize: 15, lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>{qaState.partial}</div>
         </div>
@@ -379,7 +379,7 @@ export function Search({ initialQuery, onOpenSession, onNavigateToProviders }: P
           <div style={{
             fontFamily: 'var(--font-mono)', fontSize: 10,
             letterSpacing: '0.14em', textTransform: 'uppercase',
-            color: 'var(--sunset)', marginBottom: 8,
+            color: 'var(--marigold-deep)', marginBottom: 8,
           }}>Answer · {qa.indexed_sessions} indexed · {qa.total_chunks} chunks</div>
           <div style={{ fontSize: 15, lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>{qa.answer}</div>
           {qa.citations.length > 0 && (

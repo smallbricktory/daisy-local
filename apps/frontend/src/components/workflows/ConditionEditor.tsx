@@ -9,7 +9,7 @@ import { TagCombobox } from '../tags/TagCombobox';
 const MAX_UI_DEPTH = 6;
 
 const groupBox = (mode: 'all' | 'any'): React.CSSProperties => ({
-  borderLeft: `3px solid ${mode === 'all' ? 'var(--indigo)' : 'var(--sunset)'}`,
+  borderLeft: `3px solid ${mode === 'all' ? 'var(--indigo)' : 'var(--marigold-deep)'}`,
   paddingLeft: 12,
   display: 'flex',
   flexDirection: 'column',

@@ -7,7 +7,7 @@ import { ActionStepsEditor } from '../components/workflows/ActionStepsEditor';
 
 const TRIGGER_COLORS: Record<WorkflowTrigger, string> = {
   finalized: 'var(--indigo)',
-  imported: 'var(--sunset)',
+  imported: 'var(--marigold-deep)',
   deleted: 'var(--iron)',
   finalize_failed: 'var(--danger)',
 };

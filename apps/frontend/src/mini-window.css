@@ -17,7 +17,11 @@ html.is-mini, html.is-mini body, html.is-mini #root { margin: 0; height: 100%; o
   cursor: grab; user-select: none;
 }
 .mini__dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); flex: none; }
-.mini__dot--rec { background: var(--record); box-shadow: 0 0 6px 1px rgba(215, 38, 61, 0.5); }
+.mini__dot--rec {
+  background: var(--record); box-shadow: 0 0 6px 1px rgba(215, 38, 61, 0.5);
+  animation: pulse 1.6s ease-in-out infinite;
+  will-change: opacity;
+}
 .mini__dot--paused { background: var(--amber); box-shadow: none; }
 .mini__time { font-variant-numeric: tabular-nums; font-weight: 600; }
 .mini__mode { color: var(--muted); font-size: 11px;

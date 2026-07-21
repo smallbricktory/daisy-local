@@ -320,22 +320,7 @@ where
     }
 }
 
-/// True iff the gateway error is fixed by re-registering this install's
-/// pubkey: 403 `install_not_registered` (no key on file) or 401
-/// `bad_signature` (stale key on file).
-fn registration_heals(status: u16, raw: &str) -> bool {
-    let error = serde_json::from_str::<Value>(raw)
-        .ok()
-        .as_ref()
-        .and_then(|v| v.get("error"))
-        .and_then(|e| e.as_str())
-        .map(String::from);
-    match error.as_deref() {
-        Some("install_not_registered") => status == 403,
-        Some("bad_signature") => status == 401,
-        _ => false,
-    }
-}
+use crate::gateway::registration_heals;
 
 /// Build the right `ChatCompleter` for a provider. `api_key` is required for
 /// cloud providers (Anthropic/OpenAI/Groq); local providers (LM Studio/Ollama)
@@ -360,7 +345,8 @@ pub fn build_chat_completer(
 
 #[cfg(test)]
 mod tests {
-    use super::{registration_heals, response_format_body, token_limit_key};
+    use super::{response_format_body, token_limit_key};
+    use crate::gateway::registration_heals;
     use crate::state_provider::ResponseFormat;
     use serde_json::json;
 

@@ -313,7 +313,7 @@ export function Settings({ onLocked, onLaunchWizard, onCalendarsChanged, initial
               border: 'none',
               borderRadius: 6, cursor: 'pointer', fontSize: 14,
               background: section === s ? 'var(--tint)' : 'transparent',
-              color: section === s ? 'var(--plum)' : 'inherit',
+              color: section === s ? 'var(--graphite)' : 'inherit',
               fontWeight: section === s ? 600 : 400,
             }}
           >
@@ -2263,7 +2263,7 @@ function TagsSection() {
   const [tags, setTags] = useState<Tag[]>([]);
   const [sel, setSel] = useState<TagSelection>({ kind: 'new' });
   const [name, setName] = useState('');
-  const [color, setColor] = useState('#FF6A00');
+  const [color, setColor] = useState('#F2A900');
   const [promptText, setPromptText] = useState('');
   const [vocabText, setVocabText] = useState('');
   const [busy, setBusy] = useState(false);
@@ -2304,7 +2304,7 @@ function TagsSection() {
   function seedNew() {
     setSel({ kind: 'new' });
     setName('');
-    setColor('#FF6A00');
+    setColor('#F2A900');
     setPromptText('');
     setVocabText('');
     setErr(null);
@@ -2381,7 +2381,7 @@ function TagsSection() {
                   display: 'block', width: '100%', textAlign: 'left', padding: '6px 8px', marginBottom: 4,
                   border: 'none',
                   borderRadius: 6, background: active ? 'var(--tint)' : 'transparent', cursor: 'pointer',
-                  color: active ? 'var(--plum)' : 'inherit', fontWeight: active ? 600 : 400,
+                  color: active ? 'var(--graphite)' : 'inherit', fontWeight: active ? 600 : 400,
                 }}
               >
                 <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
@@ -2401,7 +2401,7 @@ function TagsSection() {
               display: 'block', width: '100%', textAlign: 'left', padding: '6px 8px', marginTop: 8,
               border: '1px dashed var(--frost-deep)', borderRadius: 6,
               background: sel.kind === 'new' ? 'var(--tint)' : 'transparent',
-              color: sel.kind === 'new' ? 'var(--plum)' : 'inherit',
+              color: sel.kind === 'new' ? 'var(--graphite)' : 'inherit',
               fontWeight: sel.kind === 'new' ? 600 : 400, fontSize: 13, cursor: 'pointer',
             }}
           >

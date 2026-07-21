@@ -1,20 +1,19 @@
 :root {
-  /* Alpine-sunset brand palette. */
-  --cream:       #F4EFE6;     /* warm cream — primary surface */
-  --cream-pure:  #FAF6EE;     /* lightest surface */
-  --plum:        #4A235A;     /* deep plum — headings + headline text */
-  --plum-soft:   #6B3F7E;
-  --ink:         #1A1015;     /* primary running text on light surfaces */
-  --iron:        #6c6960;     /* muted text on cream */
-  --frost-deep:  #CFC2A6;     /* solid hairline / surface-delineating rules on cream */
-  --frost-soft:  #E2DACC;     /* lighter rule tint — ghost/empty-state affordances only */
-  --sunset:      #FF6A00;     /* sunset orange — primary accent */
-  --sunset-deep: #D45200;
-  --amber:       #FFC13B;     /* golden amber */
+  /* Charcoal & marigold brand palette. */
+  --cream:         #F4EFE6;   /* warm cream — primary surface */
+  --cream-pure:    #FAF6EE;   /* lightest surface */
+  --graphite:      #24262B;   /* dark anchor — headings, nav emphasis */
+  --graphite-soft: #4A4E57;   /* secondary graphite */
+  --ink:           #1A1015;   /* primary running text on light; text on gold */
+  --iron:          #6c6960;   /* muted text on cream */
+  --frost-deep:    #CFC2A6;   /* solid hairline / surface-delineating rules on cream */
+  --frost-soft:    #E2DACC;   /* lighter rule tint — ghost/empty-state affordances only */
+  --marigold:      #F2A900;   /* marigold gold — primary accent; fills take ink text */
+  --marigold-deep: #9C6B00;   /* AA accent TEXT on cream; never a fill behind light text */
+  --amber:         #FFC13B;   /* highlight; hover state of gold fills (brighten, never darken) */
   --indigo:      #3B4B9B;     /* mountain indigo */
   --indigo-deep: #2E3D8C;     /* AA-contrast indigo on cream */
-  --lavender:    #A9B4FF;     /* glacier lavender */
-  --danger:      #B23A2A;     /* on-brand alert (plum-toned red) */
+  --danger:      #B23A2A;     /* on-brand alert (warm brick red) */
   --record:      #D7263D;     /* recording red — universal "recording" signal; distinct from danger */
   --record-deep: #B81E33;     /* hover */
   --record-down: #931626;     /* active/pressed */
@@ -35,12 +34,12 @@
   --library-max: 880px;
   --control-h: 38px;           /* shared height: buttons, inputs, selects */
   --rule: 1px solid var(--frost-deep);
-  --tint: rgba(169, 180, 255, 0.22);   /* glacier-lavender wash for active nav */
+  --tint: rgba(242, 169, 0, 0.16);     /* marigold wash for active nav */
   --muted: var(--iron);
   --me-accent: var(--indigo);
-  --them-accent: var(--sunset);
+  --them-accent: var(--marigold-deep);
   --me-tint: rgba(59, 75, 155, 0.10);
-  --them-tint: rgba(255, 106, 0, 0.09);
+  --them-tint: rgba(242, 169, 0, 0.09);
 }
 
 html, body, #root { background: var(--cream); color: var(--ink); height: 100%; }
@@ -54,7 +53,7 @@ body {
     var(--cream);
   background-attachment: fixed;
 }
-::selection { background: var(--sunset); color: var(--cream-pure); }
+::selection { background: var(--marigold); color: var(--cream-pure); }
 
 /* ===== Type tiers =====
    Archivo (--font-display): headings/display only.
@@ -81,12 +80,12 @@ body {
   line-height: 1.12;
   letter-spacing: -0.01em;
   margin: 0 0 var(--space-3);
-  color: var(--plum);
+  color: var(--graphite);
 }
 .h1 em {
   /* Display italics aren't shipped; emphasis is color-borne. */
   font-style: normal;
-  color: var(--sunset-deep); /* deep variant: --sunset is 2.5:1 on cream, fails even large-text AA */
+  color: var(--marigold-deep);
   font-weight: 600;
 }
 /* Page-title variant: pins to the top of the scrolling pane (main__body);
@@ -104,7 +103,7 @@ body {
   font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.01em;
-  color: var(--plum);
+  color: var(--graphite);
   margin: var(--space-4) 0 var(--space-2);
 }
 .h3 {
@@ -112,7 +111,7 @@ body {
   font-size: 13.5px;
   font-weight: 600;
   letter-spacing: 0.01em;
-  color: var(--plum);
+  color: var(--graphite);
   margin: var(--space-2) 0 var(--space-1);
 }
 
@@ -136,8 +135,8 @@ body {
   border-radius: 6px;
   background: var(--cream-pure) center/110% no-repeat url("/daisy-logo.png");
   box-shadow:
-    0 1px 0 rgba(74, 35, 90, 0.06),
-    0 6px 18px -10px rgba(74, 35, 90, 0.18);
+    0 1px 0 rgba(36, 38, 43, 0.06),
+    0 6px 18px -10px rgba(36, 38, 43, 0.18);
   border: 1px solid var(--frost-deep);
   image-rendering: pixelated;
   flex: 0 0 auto;
@@ -153,7 +152,7 @@ body {
   font-weight: 700;
   font-size: 28px;
   letter-spacing: -0.02em;
-  color: var(--plum);
+  color: var(--graphite);
 }
 
 /* ===== Side rail refinement =====
@@ -196,14 +195,14 @@ body {
   position: absolute;
   left: 0; top: 50%;
   width: 3px; height: 0;
-  background: var(--sunset);
+  background: var(--marigold);
   border-radius: 0 2px 2px 0;
   transform: translateY(-50%);
   transition: height 200ms ease;
 }
-.rail .nav-item:hover { color: var(--plum); background: rgba(74, 35, 90, 0.04); }
+.rail .nav-item:hover { color: var(--graphite); background: rgba(36, 38, 43, 0.04); }
 .rail .nav-item.active {
-  color: var(--plum);
+  color: var(--graphite);
   background: var(--tint);
   font-weight: 600;
 }
@@ -252,8 +251,13 @@ body {
   flex: 0 0 auto;
   /* No animation while idle. On Linux webkit2gtk, transform+box-shadow
      keyframes trigger a paint of the surrounding box-shadow region every
-     frame. The in-recording pulse lives on `.recorder .state-dot` and
-     `.rec-pill__dot` (opacity-only). */
+     frame — every in-recording pulse in the app is opacity-only
+     (compositor-composited, no per-frame paint). */
+}
+/* While a recording is live, the rail dot breathes. */
+.rail .nav-item--record__dot--live {
+  animation: pulse 1.6s ease-in-out infinite;
+  will-change: opacity;
 }
 
 /* ===== Surfaces / cards ===== */
@@ -263,8 +267,8 @@ body {
   border-radius: 8px;
   padding: var(--space-3);
   box-shadow:
-    0 1px 0 rgba(74, 35, 90, 0.04),
-    0 12px 28px -22px rgba(74, 35, 90, 0.18);
+    0 1px 0 rgba(36, 38, 43, 0.04),
+    0 12px 28px -22px rgba(36, 38, 43, 0.18);
 }
 .hairline { border-top: 1px dashed var(--frost-deep); margin: var(--space-3) 0; }
 
@@ -283,7 +287,7 @@ body {
   border-radius: 6px;
   border: 1px solid var(--frost-deep);
   background: var(--cream-pure);
-  color: var(--plum);
+  color: var(--graphite);
   cursor: pointer;
   transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
 }
@@ -291,12 +295,12 @@ body {
 .btn:disabled { opacity: 0.55; cursor: not-allowed; }
 .btn:active { transform: translateY(0); }
 .btn--primary {
-  background: var(--sunset);
-  color: var(--cream-pure);
-  border-color: var(--sunset-deep);
-  box-shadow: 0 6px 16px -8px rgba(255, 106, 0, 0.45);
+  background: var(--marigold);
+  color: var(--ink);
+  border-color: var(--marigold-deep);
+  box-shadow: 0 6px 16px -8px rgba(242, 169, 0, 0.45);
 }
-.btn--primary:hover:not(:disabled) { background: var(--sunset-deep); border-color: var(--sunset-deep); }
+.btn--primary:hover:not(:disabled) { background: var(--amber); border-color: var(--amber); }
 /* Record-semantic CTA — red, the universal recording signal (Start recording,
    and anything else that begins/ends capture). Brand orange stays for
    ordinary primary actions. */
@@ -352,7 +356,7 @@ body {
   padding: 0 10px;
   font-family: inherit;
   font-size: 13px;
-  color: var(--plum);
+  color: var(--graphite);
   background: var(--cream-pure);
   border: 1px solid var(--indigo);
   border-radius: 6px;
@@ -400,17 +404,17 @@ body {
   image-rendering: pixelated;
   margin-bottom: var(--space-3);
   box-shadow:
-    0 1px 0 rgba(74, 35, 90, 0.06),
-    0 22px 44px -28px rgba(74, 35, 90, 0.4);
+    0 1px 0 rgba(36, 38, 43, 0.06),
+    0 22px 44px -28px rgba(36, 38, 43, 0.4);
 }
 .hero .lede {
   font-size: 17px;
   line-height: 1.55;
-  color: var(--plum-soft);
+  color: var(--graphite-soft);
   max-width: 46ch;
   margin: 0 0 var(--space-2);
 }
-.hero .lede em { font-style: italic; color: var(--sunset-deep); font-weight: 500; }
+.hero .lede em { font-style: italic; color: var(--marigold-deep); font-weight: 500; }
 
 /* ===== Step indicator (Welcome) ===== */
 .steps {
@@ -428,12 +432,12 @@ body {
   border-radius: 99px;
   background: var(--cream-pure);
 }
-.steps .step.is-current { color: var(--plum); border-color: var(--plum); background: var(--cream-pure); }
+.steps .step.is-current { color: var(--graphite); border-color: var(--graphite); background: var(--cream-pure); }
 .steps .step.is-done { color: var(--indigo); border-color: var(--indigo); }
 .steps .step .dot {
   width: 6px; height: 6px; border-radius: 50%; background: var(--frost-deep);
 }
-.steps .step.is-current .dot { background: var(--sunset); }
+.steps .step.is-current .dot { background: var(--marigold); }
 .steps .step.is-done .dot { background: var(--indigo); }
 
 /* ===== Recorder (Active session) ===== */
@@ -445,8 +449,8 @@ body {
   border: 1px solid var(--frost-deep);
   border-radius: 16px;
   box-shadow:
-    0 1px 0 rgba(74, 35, 90, 0.04),
-    0 30px 60px -40px rgba(74, 35, 90, 0.35);
+    0 1px 0 rgba(36, 38, 43, 0.04),
+    0 30px 60px -40px rgba(36, 38, 43, 0.35);
   position: relative;
   /* No overflow clip: the tag-combobox menu must be able to extend past the
      card's bottom edge. The ::before wash clips itself via border-radius. */
@@ -456,7 +460,7 @@ body {
   position: absolute; inset: 0; pointer-events: none;
   border-radius: inherit;
   background:
-    radial-gradient(400px 200px at 50% -10%, rgba(255, 106, 0, 0.10), transparent 60%);
+    radial-gradient(400px 200px at 50% -10%, rgba(242, 169, 0, 0.10), transparent 60%);
 }
 .recorder > * { position: relative; }
 .recorder .timer {
@@ -465,7 +469,7 @@ body {
   font-weight: 500;
   letter-spacing: -0.02em;
   margin: var(--space-3) 0;
-  color: var(--plum);
+  color: var(--graphite);
   font-variant-numeric: tabular-nums;
 }
 .recorder .state-line {
@@ -479,7 +483,7 @@ body {
 .recorder .state-dot {
   width: 10px; height: 10px;
 }
-.recorder.paused .state-line { color: var(--sunset-deep); }
+.recorder.paused .state-line { color: var(--marigold-deep); }
 
 /* ===== Library / list rows ===== */
 .session-row {
@@ -487,7 +491,7 @@ body {
   transition: background 160ms ease, padding-left 160ms ease;
 }
 .session-row:hover {
-  background: rgba(74, 35, 90, 0.03);
+  background: rgba(36, 38, 43, 0.03);
   padding-left: 6px;
 }
 .session-row .time {
@@ -522,10 +526,8 @@ body {
   font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
 }
 .turn.me .who { font-weight: 600; color: var(--me-accent); }
-/* Label reads at 11px: --sunset is 2.5:1 on cream (fails AA), so the
-   label uses the deep variant — same fix as `.h1 em`. The accent BAR
-   keeps the brighter --them-accent; bars are decorative, labels are text. */
-.turn.them .who { font-weight: 600; color: var(--sunset-deep); }
+/* 11px text label: deep gold variant; the accent bar keeps --them-accent. */
+.turn.them .who { font-weight: 600; color: var(--marigold-deep); }
 
 /* Live transcript only: chat-bubble turns. Them hug the left, Me hug the
    right; the tinted background wraps just the sentence (not the full row);
@@ -605,7 +607,7 @@ body {
   font-family: "Inter", system-ui, sans-serif;
   font-size: 15px;
   font-weight: 600;
-  color: var(--plum);
+  color: var(--graphite);
   margin: 0 0 6px;
 }
 .live-off-card__body {
@@ -672,7 +674,7 @@ body {
   outline: none;
   background: transparent;
   font-size: 13px;
-  color: var(--plum, #2a2540);
+  color: var(--graphite, #24262B);
 }
 .findbar__btn {
   border: none;
@@ -689,11 +691,11 @@ body {
 /* Transient highlight when a search result scrolls to its matched line. */
 .turn--found {
   animation: turn-found-flash 2.4s ease-out;
-  border-left-color: var(--plum, #6b4e8f);
+  border-left-color: var(--graphite, #4A4E57);
 }
 @keyframes turn-found-flash {
-  0%   { background: var(--plum, #6b4e8f); }
-  18%  { background: color-mix(in srgb, var(--plum, #6b4e8f) 28%, transparent); }
+  0%   { background: var(--graphite, #4A4E57); }
+  18%  { background: color-mix(in srgb, var(--graphite, #4A4E57) 28%, transparent); }
   100% { background: transparent; }
 }
 /* Same transient highlight for a summary markdown block reached from search. */
@@ -733,7 +735,7 @@ textarea) {
   border: 1px solid var(--frost-deep);
   border-radius: 6px;
   background: var(--cream-pure);
-  color: var(--plum);
+  color: var(--graphite);
   transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 /* Every single-line control shares the .btn height (--control-h) so text
@@ -851,12 +853,12 @@ textarea):focus {
 .recorder .controls { display: flex; gap: var(--space-2); justify-content: center; margin-top: var(--space-4); }
 .recorder .controls button {
   padding: 10px 20px; border: 1px solid var(--frost-deep); background: var(--cream-pure);
-  border-radius: 6px; color: var(--plum); cursor: pointer;
+  border-radius: 6px; color: var(--graphite); cursor: pointer;
   transition: border-color 200ms ease, transform 200ms ease, background 200ms ease;
 }
 .recorder .controls button:hover { border-color: var(--indigo); transform: translateY(-1px); }
-.recorder .controls button.danger { color: var(--sunset-deep); border-color: rgba(212, 82, 0, 0.35); }
-.recorder .controls button.danger:hover { background: rgba(255, 106, 0, 0.08); border-color: var(--sunset-deep); }
+.recorder .controls button.danger { color: var(--marigold-deep); border-color: rgba(156, 107, 0, 0.35); }
+.recorder .controls button.danger:hover { background: rgba(242, 169, 0, 0.08); border-color: var(--marigold-deep); }
 
 /* Transcript review (Style B) */
 .review { display: grid; grid-template-columns: 1fr 280px; gap: var(--space-4); align-items: start; }
@@ -871,7 +873,7 @@ textarea):focus {
 /* =========================================================================
    PLAN B — new component classes (tags, modal, notebook, split, finalize,
    library master-detail, summary pane, search). Composes with existing
-   .btn / .surface / .chip / .turn system above; reuses alpine-sunset tokens.
+   .btn / .surface / .chip / .turn system above; reuses the brand tokens.
    ========================================================================= */
 
 /* ----- Tag UI ----- */
@@ -885,7 +887,7 @@ textarea):focus {
   background: var(--cream-pure); color: var(--iron);
   border: 1px dashed var(--frost-soft); cursor: pointer;
 }
-.tag-chip--ghost:hover { border-color: var(--indigo-deep); color: var(--plum); }
+.tag-chip--ghost:hover { border-color: var(--indigo-deep); color: var(--graphite); }
 .tag-chip__dot { width: 6px; height: 6px; border-radius: 50%; flex: 0 0 auto; }
 .tag-chip__pencil { font-size: 10px; color: var(--indigo-deep); cursor: pointer; opacity: 0.7; }
 .tag-chip__pencil:hover { opacity: 1; }
@@ -902,7 +904,7 @@ textarea):focus {
   display: flex; align-items: center; gap: 8px;
   padding: 7px 10px; cursor: pointer; font-size: 13px; color: var(--ink);
 }
-.tag-combobox__option:hover, .tag-combobox__option--active { background: rgba(74, 35, 90, 0.06); }
+.tag-combobox__option:hover, .tag-combobox__option--active { background: rgba(36, 38, 43, 0.06); }
 .tag-combobox__create { color: var(--indigo-deep); }
 
 .color-picker { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
@@ -935,7 +937,7 @@ textarea):focus {
 }
 .modal__title {
   font-family: var(--font-display);
-  font-size: 20px; font-weight: 600; color: var(--plum); margin: 0 0 4px;
+  font-size: 20px; font-weight: 600; color: var(--graphite); margin: 0 0 4px;
 }
 .modal__actions {
   display: flex; gap: 8px; margin-top: 16px; padding-top: 12px;
@@ -971,7 +973,7 @@ textarea):focus {
   height: auto; padding: 0;
   font-family: var(--font-display);
   font-size: 24px; font-weight: 600; letter-spacing: -0.01em;
-  color: var(--plum); background: transparent; border: none; border-radius: 0; outline: none;
+  color: var(--graphite); background: transparent; border: none; border-radius: 0; outline: none;
   margin: 6px 0;
 }
 .notebook__tags { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
@@ -992,8 +994,8 @@ textarea):focus {
   padding: 12px; background: var(--cream-pure); border-top: 1px solid var(--frost-deep);
 }
 .btn--big { height: 46px; font-size: 15px; font-weight: 600; padding: 0 28px; border-radius: 8px; }
-.btn--stop { background: var(--sunset); color: var(--cream-pure); border: 1px solid var(--sunset-deep); }
-.btn--stop:hover:not(:disabled) { background: var(--sunset-deep); border-color: var(--sunset-deep); }
+.btn--stop { background: var(--marigold); color: var(--ink); border: 1px solid var(--marigold-deep); }
+.btn--stop:hover:not(:disabled) { background: var(--amber); border-color: var(--amber); }
 .btn--resume { background: var(--indigo-deep); color: var(--cream-pure); border: 1px solid var(--indigo-deep); }
 .btn--resume:hover:not(:disabled) { background: var(--indigo); border-color: var(--indigo); }
 
@@ -1018,13 +1020,13 @@ textarea):focus {
 .finalize__card { width: min(420px, 90vw); text-align: center; }
 .finalize__stage {
   font-family: var(--font-mono);
-  font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sunset);
+  font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--marigold);
 }
 .finalize__bar {
   height: 6px; border-radius: 99px; background: var(--frost-deep);
   margin: 12px 0; overflow: hidden;
 }
-.finalize__bar-fill { height: 100%; background: var(--sunset); transition: width 200ms ease; }
+.finalize__bar-fill { height: 100%; background: var(--marigold); transition: width 200ms ease; }
 
 /* ----- Toast stack (corner; non-blocking) -----
    Rendered by NotificationToast.tsx from the unified toast store. */
@@ -1116,7 +1118,7 @@ textarea):focus {
 .proc-toast__head { display: flex; align-items: center; gap: 8px; }
 .proc-toast__stage {
   flex: 1; font-family: var(--font-mono);
-  font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sunset);
+  font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--marigold);
 }
 .proc-toast--done .proc-toast__stage { color: var(--indigo-deep); }
 .proc-toast--err  .proc-toast__stage { color: var(--danger); }
@@ -1124,13 +1126,13 @@ textarea):focus {
   background: none; border: none; cursor: pointer; color: var(--iron);
   font-size: 12px; line-height: 1; padding: 2px;
 }
-.proc-toast__x:hover { color: var(--plum); }
+.proc-toast__x:hover { color: var(--graphite); }
 .proc-toast__title {
   font-size: 13px; font-weight: 500; color: var(--ink);
   margin: 2px 0 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .proc-toast__bar { height: 5px; border-radius: 99px; background: var(--frost-deep); overflow: hidden; }
-.proc-toast__bar-fill { height: 100%; background: var(--sunset); transition: width 250ms ease; }
+.proc-toast__bar-fill { height: 100%; background: var(--marigold); transition: width 250ms ease; }
 .proc-toast__msg { font-size: 12px; color: var(--danger); margin: 6px 0 0; line-height: 1.4; }
 .proc-toast__open {
   margin-top: 4px; background: none; border: none; cursor: pointer; padding: 2px 0;
@@ -1175,7 +1177,7 @@ textarea):focus {
   display: flex; align-items: center; gap: 8px;
 }
 .action-menu__item:hover:not(:disabled) {
-  background: rgba(74, 35, 90, 0.08); color: var(--plum);
+  background: rgba(36, 38, 43, 0.08); color: var(--graphite);
 }
 .action-menu__item:disabled { color: var(--iron); cursor: not-allowed; opacity: 0.6; }
 .action-menu__subwrap { position: relative; display: flex; flex-direction: column; }
@@ -1231,13 +1233,13 @@ textarea):focus {
 .library__divider { cursor: col-resize; background: transparent; }
 .library__divider:hover { background: var(--frost-deep); }
 .session-row--active {
-  background: rgba(255, 106, 0, 0.07);
-  border-left: 3px solid var(--sunset);
+  background: rgba(242, 169, 0, 0.07);
+  border-left: 3px solid var(--marigold);
   padding-left: 11px;
 }
 /* The generic .session-row:hover bumps padding-left to 14px; the active row
    stays at 11px (its 3px border eats the difference). */
-.session-row--active:hover { padding-left: 11px; background: rgba(255, 106, 0, 0.1); }
+.session-row--active:hover { padding-left: 11px; background: rgba(242, 169, 0, 0.1); }
 .session-row__date {
   font-family: var(--font-mono);
   color: var(--indigo-deep); font-size: 12px;
@@ -1259,7 +1261,7 @@ textarea):focus {
 .summary-pane__title {
   font-family: var(--font-display);
   font-size: 21px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.15;
-  margin: 2px 0 4px; color: var(--plum);
+  margin: 2px 0 4px; color: var(--graphite);
 }
 .summary-pane__meta {
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;
@@ -1304,7 +1306,7 @@ textarea):focus {
 }
 .participant-row__main:hover { background: var(--tint, rgba(0,0,0,0.03)); }
 .participant-row__name { font-size: 14px; font-weight: 500; color: var(--iron); }
-.participant-row__name[data-labeled="1"] { color: var(--plum); }
+.participant-row__name[data-labeled="1"] { color: var(--graphite); }
 .participant-row__meta { font-size: 11px; color: var(--iron); margin-top: 2px; }
 .participant-row__menu { position: relative; flex-shrink: 0; }
 .participant-row__kebab {
@@ -1353,7 +1355,7 @@ textarea):focus {
 }
 .detail-tabs__tab { cursor: pointer; }
 .detail-tabs__tab--on {
-  color: var(--plum); border-bottom: 2px solid var(--sunset);
+  color: var(--graphite); border-bottom: 2px solid var(--marigold);
   padding-bottom: 8px; margin-bottom: -9px;
 }
 .tldr-callout {
@@ -1374,10 +1376,10 @@ textarea):focus {
 }
 .markdown-view h1 {
   font-family: var(--font-display);
-  font-size: 20px; font-weight: 600; color: var(--plum); margin: 8px 0 4px;
+  font-size: 20px; font-weight: 600; color: var(--graphite); margin: 8px 0 4px;
 }
 .markdown-view h2, .markdown-view h3 {
-  font-size: 13.5px; font-weight: 600; letter-spacing: 0.01em; color: var(--plum);
+  font-size: 13.5px; font-weight: 600; letter-spacing: 0.01em; color: var(--graphite);
 }
 .markdown-view h2 { margin: 14px 0 6px; }
 .markdown-view h3 { margin: 12px 0 4px; }
@@ -1422,7 +1424,7 @@ textarea):focus {
   display: grid; grid-template-columns: 72px 1fr auto; gap: 12px;
   padding: 10px 0; border-bottom: 1px solid var(--frost-deep); cursor: pointer; align-items: center;
 }
-.search-result:hover { background: rgba(74, 35, 90, 0.03); }
+.search-result:hover { background: rgba(36, 38, 43, 0.03); }
 .search-result mark { background: rgba(255, 193, 59, 0.5); color: var(--ink); padding: 0 2px; border-radius: 2px; }
 
 /* ----- Model download overlay ----- */
@@ -1437,7 +1439,7 @@ textarea):focus {
   padding: 1.25rem 1.5rem; border-radius: 8px; min-width: 380px; max-width: 460px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.5);
 }
-.model-download-card h3 { margin: 0 0 0.75rem; font-size: 1.05rem; color: var(--plum); }
+.model-download-card h3 { margin: 0 0 0.75rem; font-size: 1.05rem; color: var(--graphite); }
 .model-download-card progress { width: 100%; height: 8px; }
 .model-download-meta { margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.85; }
 .model-download-hint { margin-top: 0.75rem; font-size: 0.85rem; opacity: 0.7; }
@@ -1460,8 +1462,8 @@ textarea):focus {
   image-rendering: pixelated;
   flex: 0 0 auto;
   box-shadow:
-    0 1px 0 rgba(74, 35, 90, 0.06),
-    0 8px 18px -12px rgba(74, 35, 90, 0.3);
+    0 1px 0 rgba(36, 38, 43, 0.06),
+    0 8px 18px -12px rgba(36, 38, 43, 0.3);
 }
 
 /* U2 — drop heading one size (28px → 22px) and remove top margin inside wizard */
@@ -1514,3 +1516,12 @@ textarea):focus {
 .md-editor .ProseMirror { outline: none; font-size: 14px; line-height: 1.6; }
 .md-editor .ProseMirror p { margin: 0 0 0.6em; }
 .md-editor .ProseMirror h1, .md-editor .ProseMirror h2, .md-editor .ProseMirror h3 { margin: 0.8em 0 0.4em; }
+
+/* Recording pulses are decorative — honor reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  .notebook__rec-dot,
+  .rail .nav-item--record__dot--live,
+  .recorder .state-dot,
+  .rec-pill__dot,
+  .mini__dot--rec { animation: none; }
+}

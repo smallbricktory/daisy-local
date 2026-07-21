@@ -337,10 +337,10 @@ pub fn finalize_and_summarize_impl(
             .as_ref()
             .and_then(|m| try_promote_live_transcript(&session_root, m, &req.session_id));
         match promotion {
-            // Promoted with gap(s): transcribe only the holes from the WAVs
-            // and splice them in. Best-effort: on failure the promoted
-            // transcript stays.
-            Some(promo) if !promo.gaps.is_empty() => {
+            // Promoted: patch coverage gaps from the WAVs when present, then
+            // re-decode the mic track from the AEC-cleaned audio. Both steps
+            // are best-effort: on failure the promoted transcript stays.
+            Some(promo) => {
                 let settings =
                     crate::settings::Settings::load_or_default(&app.profile.settings_path());
                 let model_path = settings
@@ -352,31 +352,55 @@ pub fn finalize_and_summarize_impl(
                             .map(|d| std::path::PathBuf::from(d).join("ggml-base.en.bin"))
                     });
                 match model_path {
-                    Some(mp) => match crate::commands::gap_patch::patch_gaps_on_disk(
-                        &session_root,
-                        &mp,
-                        &promo.gaps,
-                        &promo.spans,
-                    ) {
-                        Ok(n) => log::info!(
-                            "finalize: patched {} gap(s) for {}, recovered {} seg(s) — skipped full pass",
-                            promo.gaps.len(),
-                            req.session_id,
-                            n
-                        ),
-                        Err(e) => log::warn!(
-                            "finalize: gap-patch failed for {}: {e} — keeping promoted live transcript",
-                            req.session_id
-                        ),
-                    },
+                    Some(mp) => {
+                        if !promo.gaps.is_empty() {
+                            match crate::commands::gap_patch::patch_gaps_on_disk(
+                                &session_root,
+                                &mp,
+                                &promo.gaps,
+                                &promo.spans,
+                            ) {
+                                Ok(n) => log::info!(
+                                    "finalize: patched {} gap(s) for {}, recovered {} seg(s) — skipped full pass",
+                                    promo.gaps.len(),
+                                    req.session_id,
+                                    n
+                                ),
+                                Err(e) => log::warn!(
+                                    "finalize: gap-patch failed for {}: {e} — keeping promoted live transcript",
+                                    req.session_id
+                                ),
+                            }
+                        }
+                        write_finalize_status(
+                            &session_root,
+                            "transcribing",
+                            0.35,
+                            Some("re-decoding your mic track"),
+                        );
+                        match crate::commands::gap_patch::redecode_mic_on_disk(
+                            &session_root,
+                            &mp,
+                            &promo.spans,
+                        ) {
+                            Ok((old, new)) => log::info!(
+                                "finalize: mic re-decode for {}: {} live seg(s) replaced by {} whisper seg(s)",
+                                req.session_id,
+                                old,
+                                new
+                            ),
+                            Err(e) => log::warn!(
+                                "finalize: mic re-decode failed for {}: {e} — keeping promoted mic segments",
+                                req.session_id
+                            ),
+                        }
+                    }
                     None => log::warn!(
-                        "finalize: no whisper model to patch gaps for {} — keeping promoted live transcript",
+                        "finalize: no whisper model for {} — keeping promoted live transcript as-is",
                         req.session_id
                     ),
                 }
             }
-            // Fully covered by the live transcript — nothing to transcribe.
-            Some(_) => {}
             // Live transcript missing/too incomplete → full whisper pass.
             None => {
                 // Per-chunk progress across the transcribing band (0.15 → 0.6).

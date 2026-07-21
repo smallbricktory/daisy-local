@@ -125,21 +125,33 @@ fn call_gateway(
     let body = json!({ "messages": wire_json(system, messages, true), "max_tokens": max_out, "temperature": 0.2 });
     let body_bytes =
         serde_json::to_vec(&body).map_err(|e| AppError::Config(format!("gateway body: {e}")))?;
-    let resp = summarize::gateway::request(&http(), creds, &body_bytes)
-        .send()
-        .map_err(|e| AppError::Provider(format!("{feature} failed: couldn't reach Daisy Cloud. {e}")))?;
-    let status = resp.status();
-    let endpoint = resp.url().path().to_string();
-    summarize::error::log_http(feature, "POST", resp.url().as_str(), status.as_u16());
-    if status.as_u16() == 404 {
-        return Err(AppError::GatewayNotEntitled);
+    let mut tried_register = false;
+    loop {
+        let resp = summarize::gateway::request(&http(), creds, &body_bytes)
+            .send()
+            .map_err(|e| AppError::Provider(format!("{feature} failed: couldn't reach Daisy Cloud. {e}")))?;
+        let status = resp.status();
+        let endpoint = resp.url().path().to_string();
+        summarize::error::log_http(feature, "POST", resp.url().as_str(), status.as_u16());
+        if status.as_u16() == 404 {
+            return Err(AppError::GatewayNotEntitled);
+        }
+        if !status.is_success() {
+            let raw = resp.text().unwrap_or_default();
+            // Self-heal a stale/missing install registration exactly once,
+            // matching the summarize path: re-register the pubkey, retry.
+            if !tried_register && summarize::gateway::registration_heals(status.as_u16(), &raw) {
+                tried_register = true;
+                if let Ok(true) = summarize::gateway::register_install(&http(), creds) {
+                    log::info!("gateway {feature}: stale/missing install registration — registered pubkey, retrying once");
+                    continue;
+                }
+            }
+            return Err(AppError::Provider(summarize::error::friendly_http_error(feature, &endpoint, status.as_u16(), &raw)));
+        }
+        let v: serde_json::Value = resp.json().map_err(|e| AppError::Config(format!("chat decode: {e}")))?;
+        return Ok(extract_openai(&v));
     }
-    if !status.is_success() {
-        let raw = resp.text().unwrap_or_default();
-        return Err(AppError::Provider(summarize::error::friendly_http_error(feature, &endpoint, status.as_u16(), &raw)));
-    }
-    let v: serde_json::Value = resp.json().map_err(|e| AppError::Config(format!("chat decode: {e}")))?;
-    Ok(extract_openai(&v))
 }
 
 fn call_openai_compat(

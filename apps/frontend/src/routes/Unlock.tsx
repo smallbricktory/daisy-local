@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { tauri } from '../tauri';
 
 interface Props {
@@ -11,6 +11,8 @@ export function Unlock({ onUnlocked }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [show, setShow] = useState(false);
   const [showReset, setShowReset] = useState(false);
+  const [sha, setSha] = useState<string | null>(null);
+  useEffect(() => { tauri.buildInfo().then((b) => setSha(b.sha)).catch(() => {}); }, []);
 
   async function submit() {
     if (busy || pass.length === 0) return;
@@ -28,7 +30,10 @@ export function Unlock({ onUnlocked }: Props) {
   }
 
   return (
-    <div className="hero" style={{ maxWidth: 520 }}>
+    // Full-height flex wrapper; margin:auto centers the card and keeps tiny
+    // windows scrollable to the top.
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+    <div className="hero" style={{ maxWidth: 520, width: '100%', margin: 'auto', padding: '24px var(--space-4)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         <div className="hero-mark" aria-hidden="true" style={{ flexShrink: 0, margin: 0 }} />
         <h1 className="h1" style={{ margin: 0 }}>Daisy is <em>locked</em>.</h1>
@@ -100,6 +105,17 @@ export function Unlock({ onUnlocked }: Props) {
           }}
         />
       )}
+    </div>
+    {sha && (
+      <span
+        style={{
+          position: 'fixed', right: 12, bottom: 10,
+          fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted)',
+        }}
+      >
+        build {sha}
+      </span>
+    )}
     </div>
   );
 }

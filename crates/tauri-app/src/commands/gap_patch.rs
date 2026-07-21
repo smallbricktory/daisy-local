@@ -157,6 +157,69 @@ pub fn patch_gaps_on_disk(
 }
 
 /// Read `[start_ms, end_ms)` of a 16 kHz mono WAV as normalized f32 samples.
+/// Replace the promoted transcript's mic-track segments with a fresh whisper
+/// decode of each chunk's mic WAV (the AEC-cleaned file when present; the
+/// spans point at it). System-track segments are untouched. Returns
+/// (replaced, fresh) segment counts.
+pub fn redecode_mic_on_disk(
+    session_root: &Path,
+    model_path: &Path,
+    spans: &[ChunkSpan],
+) -> anyhow::Result<(usize, usize)> {
+    let tj_path = session_root.join("transcript.json");
+    let bytes = syncsafe::read(&tj_path)?;
+    let mut transcript: SessionTranscript = serde_json::from_slice(&bytes)?;
+
+    let whisper = providers_local::WhisperLocalTranscriber::new(model_path)?;
+    let mut replaced = 0usize;
+    let mut fresh = 0usize;
+    for span in spans {
+        let wav = session_root.join(&span.mic_wav);
+        let samples = match read_wav_slice_f32(&wav, 0, u32::MAX) {
+            Ok(s) if !s.is_empty() => s,
+            Ok(_) => continue,
+            Err(e) => {
+                log::warn!("mic redecode read {} failed: {e}", wav.display());
+                continue;
+            }
+        };
+        let toks = whisper.transcribe_samples(&samples)?;
+        let segs: Vec<Segment> = toks
+            .into_iter()
+            .filter_map(|t| {
+                let text = t.text.trim().to_string();
+                if text.is_empty() {
+                    return None;
+                }
+                let start = t.start_ms.max(0) as u32;
+                let end = (t.end_ms.max(0) as u32).max(start);
+                Some(Segment { start_ms: start, end_ms: end, text, confidence: None, speaker_id: None })
+            })
+            .collect();
+        let Some(chunk) = transcript
+            .chunks
+            .iter_mut()
+            .find(|c| c.chunk_index == span.index)
+        else {
+            continue;
+        };
+        let Some(track) = chunk
+            .tracks
+            .iter_mut()
+            .find(|t| matches!(t.track, Track::Mic | Track::MicAec))
+        else {
+            continue;
+        };
+        replaced += track.segments.len();
+        fresh += segs.len();
+        track.segments = segs;
+    }
+
+    let out = serde_json::to_vec_pretty(&transcript)?;
+    syncsafe::write(&tj_path, out)?;
+    Ok((replaced, fresh))
+}
+
 fn read_wav_slice_f32(path: &Path, start_ms: u32, end_ms: u32) -> anyhow::Result<Vec<f32>> {
     let mut reader = hound::WavReader::open(path)?;
     let sr = reader.spec().sample_rate as u64;

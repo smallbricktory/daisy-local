@@ -84,9 +84,10 @@ pub async fn complete_text_streaming(
     max_out: u32,
     on_token: impl FnMut(&str),
 ) -> Result<String> {
-    complete_text_streaming_inner(target, system, messages, feature, max_out, on_token, false).await
+    complete_text_streaming_inner(target, system, messages, feature, max_out, on_token, false, false).await
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn complete_text_streaming_inner(
     target: &ChatTarget,
     system: &str,
@@ -95,6 +96,7 @@ async fn complete_text_streaming_inner(
     max_out: u32,
     mut on_token: impl FnMut(&str),
     drop_temperature: bool,
+    tried_register: bool,
 ) -> Result<String> {
     let client = http_async()?;
     let resp = match target.provider {
@@ -153,9 +155,25 @@ async fn complete_text_streaming_inner(
         if !drop_temperature && summarize::error::temperature_rejected(status.as_u16(), &raw) {
             // Retry once without `temperature` (some models accept only the default).
             return Box::pin(complete_text_streaming_inner(
-                target, system, messages, feature, max_out, on_token, true,
+                target, system, messages, feature, max_out, on_token, true, tried_register,
             ))
             .await;
+        }
+        // Self-heal a stale/missing install registration exactly once,
+        // matching the summarize path: re-register the pubkey, retry.
+        if target.provider == ProviderId::DaisyGateway
+            && !tried_register
+            && summarize::gateway::registration_heals(status.as_u16(), &raw)
+        {
+            if let Some(creds) = target.gateway.as_ref() {
+                if let Ok(true) = summarize::gateway::register_install_async(&client, creds).await {
+                    log::info!("gateway {feature}: stale/missing install registration — registered pubkey, retrying once");
+                    return Box::pin(complete_text_streaming_inner(
+                        target, system, messages, feature, max_out, on_token, drop_temperature, true,
+                    ))
+                    .await;
+                }
+            }
         }
         return Err(AppError::Provider(summarize::error::friendly_http_error(
             feature,

@@ -13,7 +13,7 @@ zxcvbnOptions.setOptions({
 });
 
 const SCORE_LABELS = ['very weak', 'weak', 'fair', 'strong', 'very strong'] as const;
-const SCORE_COLORS = ['var(--danger)', 'var(--sunset)', 'var(--amber)', 'var(--indigo)', 'var(--indigo-deep)'] as const;
+const SCORE_COLORS = ['var(--danger)', 'var(--marigold-deep)', 'var(--amber)', 'var(--indigo)', 'var(--indigo-deep)'] as const;
 
 interface Props {
   minChars: number;

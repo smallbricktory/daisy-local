@@ -24,7 +24,7 @@ html.is-reminder, html.is-reminder body, html.is-reminder #root { margin: 0; hei
 }
 .reminder__title {
   flex: 1; margin: 0; padding: 8px 10px 6px;
-  font-weight: 600; font-size: 15px; line-height: 1.25; color: var(--plum);
+  font-weight: 600; font-size: 15px; line-height: 1.25; color: var(--graphite);
   overflow: hidden; text-overflow: ellipsis; display: -webkit-box;
   -webkit-line-clamp: 2; -webkit-box-orient: vertical;
   /* Also a drag handle (see data-tauri-drag-region): the whole popup body
@@ -41,6 +41,6 @@ html.is-reminder, html.is-reminder body, html.is-reminder #root { margin: 0; hei
 }
 .reminder__btn:hover { background: var(--tint); }
 .reminder__btn--open {
-  color: #fff; background: var(--plum); border-color: var(--plum); font-weight: 600;
+  color: #fff; background: var(--graphite); border-color: var(--graphite); font-weight: 600;
 }
-.reminder__btn--open:hover { filter: brightness(0.94); background: var(--plum); }
+.reminder__btn--open:hover { filter: brightness(0.94); background: var(--graphite); }

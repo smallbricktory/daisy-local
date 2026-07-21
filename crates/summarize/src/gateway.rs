@@ -148,6 +148,49 @@ pub fn register_install(client: &reqwest::blocking::Client, creds: &GatewayCreds
     }
 }
 
+/// Async sibling of [`register_install`] for the streaming paths.
+pub async fn register_install_async(
+    client: &reqwest::Client,
+    creds: &GatewayCreds,
+) -> Result<bool> {
+    let pubkey = match install_pubkey_b64(&creds.seed) {
+        Ok(p) => p,
+        Err(_) => return Ok(false), // no real pubkey: no POST
+    };
+    let body = serde_json::json!({
+        "key": creds.license,
+        "install_id": creds.install_id,
+        "install_pubkey": pubkey,
+    });
+    match client
+        .post(ACTIVATE_URL)
+        .header("content-type", "application/json")
+        .json(&body)
+        .send()
+        .await
+    {
+        Ok(r) => Ok(r.status().is_success()),
+        Err(_) => Ok(false),
+    }
+}
+
+/// True iff the gateway error is fixed by re-registering this install's
+/// pubkey: 403 `install_not_registered` (no key on file) or 401
+/// `bad_signature` (stale key on file).
+pub fn registration_heals(status: u16, raw: &str) -> bool {
+    let error = serde_json::from_str::<serde_json::Value>(raw)
+        .ok()
+        .as_ref()
+        .and_then(|v| v.get("error"))
+        .and_then(|e| e.as_str())
+        .map(String::from);
+    match error.as_deref() {
+        Some("install_not_registered") => status == 403,
+        Some("bad_signature") => status == 401,
+        _ => false,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

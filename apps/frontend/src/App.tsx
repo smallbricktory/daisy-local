@@ -413,7 +413,12 @@ export function App() {
               }}
               title="Drag to reorder"
             >
-              {def.recordStyle && <span className="nav-item--record__dot" aria-hidden="true" />}
+              {def.recordStyle && (
+                <span
+                  className={'nav-item--record__dot' + (recState === 'recording' ? ' nav-item--record__dot--live' : '')}
+                  aria-hidden="true"
+                />
+              )}
               {def.icon && <span className="nav-item__icon" aria-hidden="true">{def.icon}</span>}
               <span>{
                 def.recordStyle

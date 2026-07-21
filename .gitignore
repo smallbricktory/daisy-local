@@ -67,6 +67,8 @@ crates/tauri-app/sessions/
 
 # Azure Trusted Signing service-principal creds (never commit)
 .creds-artifact-signing
+# AWS short-term admin creds (never commit)
+.creds-aws
 
 # Apple Developer ID cert export + its password (never commit)
 .apexissol_dev_id.p12
