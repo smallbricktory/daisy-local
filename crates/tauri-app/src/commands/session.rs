@@ -1,0 +1,1241 @@
+//! Read session artifacts: manifest, transcript markdown.
+
+use crate::error::{AppError, Result};
+use crate::state::AppState;
+use serde::Serialize;
+use std::collections::BTreeMap;
+use std::path::{Path, PathBuf};
+
+#[derive(Debug, Serialize)]
+pub struct SessionView {
+    pub session_id: String,
+    pub manifest_json: serde_json::Value,
+    /// Already-rendered markdown — null if not yet generated.
+    pub transcript_md: Option<String>,
+    pub has_dedup: bool,
+    pub has_transcript: bool,
+    pub has_summary: bool,
+}
+
+/// Insert or update an entry in `manifest.speaker_map` for a diarized cluster.
+/// Passing an empty / whitespace-only `display_name` removes the entry, which
+/// reverts the renderer to its "Person A/B/C" auto-label for that cluster.
+pub fn set_session_speaker_label_impl(
+    app: &AppState,
+    session_id: &str,
+    cluster_id: u32,
+    display_name: String,
+    email: Option<String>,
+) -> Result<()> {
+    use recording::manifest::SpeakerLabel;
+    use recording::session::Session;
+    let root = app.profile.session_path(session_id);
+    if !root.is_dir() {
+        return Err(AppError::SessionNotFound(session_id.into()));
+    }
+    let mut session = Session::load(&root).map_err(|e| AppError::Recording(e.to_string()))?;
+    let trimmed = display_name.trim().to_string();
+    let cleaned_email = email
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty());
+    session
+        .update_manifest(|m| {
+            m.speaker_map.retain(|s| s.cluster_id != cluster_id);
+            if !trimmed.is_empty() {
+                m.speaker_map.push(SpeakerLabel {
+                    cluster_id,
+                    display_name: trimmed.clone(),
+                    email: cleaned_email.clone(),
+                    voiceprint_id: None,
+                    match_confidence: None,
+                    contact_id: None,
+                });
+            }
+        })
+        .map_err(|e| AppError::Recording(e.to_string()))?;
+    Ok(())
+}
+
+/// Strip a diarized cluster from the session entirely: clear `speaker_id` on
+/// every transcript segment that belongs to the cluster, and drop the
+/// `speaker_map` entry. Updates both transcript.json and
+/// transcript.dedup.json when present.
+pub fn remove_speaker_cluster_impl(
+    app: &AppState,
+    session_id: &str,
+    cluster_id: u32,
+) -> Result<()> {
+    use recording::session::Session;
+    let root = app.profile.session_path(session_id);
+    if !root.is_dir() {
+        return Err(AppError::SessionNotFound(session_id.into()));
+    }
+    let mut session = Session::load(&root).map_err(|e| AppError::Recording(e.to_string()))?;
+    session
+        .update_manifest(|m| {
+            m.speaker_map.retain(|s| s.cluster_id != cluster_id);
+        })
+        .map_err(|e| AppError::Recording(e.to_string()))?;
+
+    for name in ["transcript.dedup.json", "transcript.json"] {
+        let path = root.join(name);
+        if !path.is_file() { continue; }
+        let bytes = syncsafe::read(&path)
+            .map_err(|e| AppError::Io(format!("read {}: {e}", path.display())))?;
+        let mut st: transcript::SessionTranscript = serde_json::from_slice(&bytes)
+            .map_err(|e| AppError::Config(format!("parse {}: {e}", path.display())))?;
+        let mut changed = 0u32;
+        for ch in st.chunks.iter_mut() {
+            for tr in ch.tracks.iter_mut() {
+                for seg in tr.segments.iter_mut() {
+                    if seg.speaker_id == Some(cluster_id) {
+                        seg.speaker_id = None;
+                        changed += 1;
+                    }
+                }
+            }
+        }
+        if changed > 0 {
+            let out = serde_json::to_vec_pretty(&st)
+                .map_err(|e| AppError::Config(format!("encode {}: {e}", path.display())))?;
+            syncsafe::write(&path, out)
+                .map_err(|e| AppError::Io(format!("write {}: {e}", path.display())))?;
+            log::info!(
+                "remove_speaker_cluster: {name} session={session_id} cluster={cluster_id} segments_cleared={changed}"
+            );
+        }
+    }
+    Ok(())
+}
+
+/// Delete an entire session directory — audio, transcript, summary, notes,
+/// manifest. Irreversible. Caller is responsible for confirming with the user.
+/// Session ids must pass [`crate::commands::session_store::is_safe_session_id`]
+/// and the canonicalized path must stay under the profile's sessions root.
+pub fn delete_session_impl(app: &AppState, session_id: &str) -> Result<()> {
+    if !crate::commands::session_store::is_safe_session_id(session_id) {
+        return Err(AppError::Config(format!("invalid session id: {session_id}")));
+    }
+    let sessions_root = app.profile.sessions_dir();
+    let target = app.profile.session_path(session_id);
+    if !target.is_dir() {
+        return Err(AppError::SessionNotFound(session_id.into()));
+    }
+    let canon_target = target
+        .canonicalize()
+        .map_err(|e| AppError::Config(format!("canonicalize session path: {e}")))?;
+    let canon_root = sessions_root
+        .canonicalize()
+        .map_err(|e| AppError::Config(format!("canonicalize sessions root: {e}")))?;
+    if !canon_target.starts_with(&canon_root) {
+        return Err(AppError::Config(
+            "session path escapes the sessions directory (symlink?)".into(),
+        ));
+    }
+    std::fs::remove_dir_all(&canon_target)
+        .map_err(|e| AppError::Io(format!("delete {}: {e}", canon_target.display())))?;
+    log::info!("deleted session {} at {}", session_id, canon_target.display());
+    Ok(())
+}
+
+
+/// Chunks either side of a cut, and how far into the straddling chunk the
+/// cut falls.
+struct CutAt {
+    keep: Vec<recording::manifest::ChunkManifest>,
+    after: Vec<recording::manifest::ChunkManifest>,
+    /// Milliseconds from the start of the last kept chunk. 0 means the cut
+    /// landed exactly on its boundary.
+    into_last_ms: u64,
+}
+
+fn split_chunks_at(m: &recording::manifest::SessionManifest, cut_ms: u64) -> Result<CutAt> {
+    let created = m.created_at_unix_seconds;
+    let start_ms = |c: &recording::manifest::ChunkManifest| {
+        ((c.started_at_unix_seconds - created).max(0) as u64) * 1000
+    };
+    let keep: Vec<_> = m.chunks.iter().filter(|c| start_ms(c) <= cut_ms).cloned().collect();
+    let after: Vec<_> = m.chunks.iter().filter(|c| start_ms(c) > cut_ms).cloned().collect();
+    let Some(last) = keep.last() else {
+        return Err(AppError::Config(
+            "cut point is before the first chunk — nothing would be left".into(),
+        ));
+    };
+    let into_last_ms = cut_ms.saturating_sub(start_ms(last));
+    let last_len_ms = last.duration_seconds.unwrap_or(0) * 1000;
+    // Nothing to remove only when the cut is at or past the end of the final
+    // chunk. A cut inside a chunk always removes audio, even when that chunk
+    // is the only one — a long single-chunk recording is the common case.
+    if after.is_empty() && (last_len_ms == 0 || into_last_ms >= last_len_ms) {
+        return Err(AppError::Config("nothing recorded after that point".into()));
+    }
+    Ok(CutAt { keep, after, into_last_ms })
+}
+
+/// Cut every track of `chunk` down to `keep_ms`, returning the audio removed
+/// from the mic and system tracks so a split can rebuild it.
+///
+/// WAV here is PCM, so this is a copy of the leading samples — no re-encode
+/// and no quality loss.
+fn truncate_chunk_audio(
+    root: &Path,
+    chunk: &recording::manifest::ChunkManifest,
+    keep_ms: u64,
+    sample_rate: u32,
+) -> Result<BTreeMap<PathBuf, Vec<i16>>> {
+    let keep_samples = (keep_ms as usize * sample_rate as usize) / 1000;
+    let mut tails = BTreeMap::new();
+    let tracks = [
+        Some(&chunk.mic_wav_relative),
+        Some(&chunk.system_wav_relative),
+        chunk.mic_aec_wav_relative.as_ref(),
+        chunk.mic_dn_wav_relative.as_ref(),
+    ];
+    for rel in tracks.into_iter().flatten() {
+        let p = root.join(rel);
+        if !p.is_file() {
+            continue;
+        }
+        let (all, _) = recording::read_wav_mono_i16(&p)
+            .map_err(|e| AppError::Io(format!("read {}: {e}", p.display())))?;
+        if keep_samples >= all.len() {
+            continue;
+        }
+        tails.insert(rel.clone(), all[keep_samples..].to_vec());
+        recording::write_wav_mono_i16(&p, &all[..keep_samples], sample_rate)
+            .map_err(|e| AppError::Io(format!("write {}: {e}", p.display())))?;
+    }
+    Ok(tails)
+}
+
+/// Rewrite a session's manifest + transcripts to end at `last_index`, and drop
+/// every artifact derived from what came after.
+fn trim_session_to(
+    root: &std::path::Path,
+    mut manifest: recording::manifest::SessionManifest,
+    keep: Vec<recording::manifest::ChunkManifest>,
+) -> Result<i64> {
+    let created = manifest.created_at_unix_seconds;
+    let last = keep.last().expect("keep is non-empty").clone();
+    let last_index = last.index;
+    let end_unix = last
+        .ended_at_unix_seconds
+        .unwrap_or(last.started_at_unix_seconds);
+
+    manifest.chunks = keep;
+    for seg in manifest.recording_segments.iter_mut() {
+        if seg.last_chunk_index.is_none_or(|i| i > last_index) {
+            seg.last_chunk_index = Some(last_index);
+        }
+        if seg.stopped_at_unix_seconds.is_none_or(|t| t > end_unix) {
+            seg.stopped_at_unix_seconds = Some(end_unix);
+        }
+    }
+    manifest.recording_segments.retain(|s| s.first_chunk_index <= last_index);
+    syncsafe::write_atomic(root.join("manifest.json"), &serde_json::to_vec_pretty(&manifest)?)?;
+
+    for name in ["transcript.json", "transcript.dedup.json"] {
+        let p = root.join(name);
+        let Ok(bytes) = syncsafe::read(&p) else { continue };
+        let Ok(mut t) = serde_json::from_slice::<transcript::SessionTranscript>(&bytes) else {
+            continue;
+        };
+        t.chunks.retain(|c| c.chunk_index <= last_index);
+        syncsafe::write_atomic(&p, &serde_json::to_vec_pretty(&t)?)?;
+    }
+
+    // The live transcript is stamped in session-global ms, not chunk index.
+    let lt = root.join("live_transcript.jsonl");
+    if let Ok(text) = std::fs::read_to_string(&lt) {
+        let cut_from_ms = ((end_unix - created).max(0) as u64) * 1000;
+        let kept: Vec<&str> = text
+            .lines()
+            .filter(|l| !l.trim().is_empty())
+            .filter(|l| {
+                serde_json::from_str::<serde_json::Value>(l)
+                    .ok()
+                    .and_then(|v| v.get("start_ms").and_then(|m| m.as_u64()))
+                    .is_none_or(|ms| ms < cut_from_ms)
+            })
+            .collect();
+        let mut out = kept.join("\n");
+        out.push('\n');
+        let _ = std::fs::write(&lt, out);
+    }
+
+    drop_derived(root);
+    Ok(end_unix - created)
+}
+
+/// Remove every artifact computed from the audio. The caller rebuilds
+/// transcript.md and meeting.opus; summary and chapters are regenerated by
+/// the user.
+fn drop_derived(root: &std::path::Path) {
+    for name in [
+        "summary.json",
+        "summary.md",
+        "chapters.json",
+        "transcript.md",
+        recording::mixdown::MEETING_AUDIO_NAME,
+    ] {
+        let _ = std::fs::remove_file(root.join(name));
+    }
+}
+
+/// Outcome of a truncation, for the toast the frontend shows.
+#[derive(Debug, Serialize)]
+pub struct TruncateOutcome {
+    pub chunks_removed: usize,
+    pub chunks_kept: usize,
+    /// New session length in seconds after the cut.
+    pub duration_seconds: i64,
+}
+
+/// Drop everything recorded after `cut_ms` (milliseconds from session
+/// start): the audio chunks, their transcript, and every derived artifact.
+///
+/// Cuts on chunk boundaries only; the chunk containing `cut_ms` is kept in
+/// full. Irreversible — the audio is removed from disk, not archived.
+pub fn truncate_session_after_impl(
+    app: &AppState,
+    session_id: &str,
+    cut_ms: u64,
+) -> Result<TruncateOutcome> {
+    let root = app.profile.session_path(session_id);
+    let manifest = read_manifest(&root, session_id)?;
+    let cut = split_chunks_at(&manifest, cut_ms)?;
+    let removed = cut.after.len();
+    let sample_rate = manifest.sample_rate.max(8000);
+
+    // Audio first: on failure the manifest still describes its files.
+    for c in &cut.after {
+        remove_chunk_dir(&root, c)?;
+    }
+    let mut keep = cut.keep;
+    if cut.into_last_ms > 0 {
+        let last = keep.last_mut().expect("keep is non-empty");
+        truncate_chunk_audio(&root, last, cut.into_last_ms, sample_rate)?;
+        let secs = cut.into_last_ms.div_ceil(1000);
+        last.duration_seconds = Some(secs);
+        last.ended_at_unix_seconds = Some(last.started_at_unix_seconds + secs as i64);
+        // Cut from the end: the first sample is unchanged, so the stamps
+        // stand and only the counts shrink.
+        let kept_samples = cut.into_last_ms * sample_rate as u64 / 1000;
+        last.mic_samples = last.mic_samples.map(|n| n.min(kept_samples));
+        last.system_samples = last.system_samples.map(|n| n.min(kept_samples));
+    }
+    let kept = keep.len();
+    let duration_seconds = trim_session_to(&root, manifest, keep)?;
+
+    log::info!("truncated {session_id} after {cut_ms}ms: kept {kept} chunk(s), removed {removed}");
+    Ok(TruncateOutcome { chunks_removed: removed, chunks_kept: kept, duration_seconds })
+}
+
+fn read_manifest(
+    root: &std::path::Path,
+    session_id: &str,
+) -> Result<recording::manifest::SessionManifest> {
+    if !root.is_dir() {
+        return Err(AppError::SessionNotFound(session_id.into()));
+    }
+    serde_json::from_slice(&syncsafe::read(root.join("manifest.json"))?)
+        .map_err(|e| AppError::Config(format!("read manifest: {e}")))
+}
+
+fn chunk_dir(root: &std::path::Path, c: &recording::manifest::ChunkManifest) -> Option<std::path::PathBuf> {
+    let d = root.join(&c.mic_wav_relative).parent()?.to_path_buf();
+    (d.starts_with(root) && d != root).then_some(d)
+}
+
+fn remove_chunk_dir(root: &std::path::Path, c: &recording::manifest::ChunkManifest) -> Result<()> {
+    if let Some(d) = chunk_dir(root, c) {
+        std::fs::remove_dir_all(&d)
+            .map_err(|e| AppError::Io(format!("remove {}: {e}", d.display())))?;
+    }
+    Ok(())
+}
+
+/// Result of a split: the tail became its own session.
+#[derive(Debug, Serialize)]
+pub struct SplitOutcome {
+    pub new_session_id: String,
+    pub chunks_moved: usize,
+    pub chunks_kept: usize,
+}
+
+/// Move everything after `cut_ms` into a new session, leaving the original
+/// ending at the cut.
+///
+/// Segment times are chunk-relative and the global time is derived at render
+/// from `chunk.started_at - manifest.created_at`, so setting the new
+/// manifest's `created_at` to the first moved chunk's start re-zeroes the
+/// tail; chunk entries, indices, directory names and segment times move
+/// unchanged.
+///
+/// The new session carries chunks, their timestamps and the capture settings.
+/// Title, tags, attendees, calendar link, notes and integration history stay
+/// with the original.
+pub fn split_session_at_impl(
+    app: &AppState,
+    session_id: &str,
+    cut_ms: u64,
+) -> Result<SplitOutcome> {
+    let root = app.profile.session_path(session_id);
+    let manifest = read_manifest(&root, session_id)?;
+    let cut = split_chunks_at(&manifest, cut_ms)?;
+
+    let sample_rate = manifest.sample_rate.max(8000);
+    // The cut usually lands inside a chunk, so the new session begins with
+    // that chunk's tail. Its index is the straddling chunk's, keeping the
+    // pairing with the transcript chunk the segments belong to.
+    let straddles = cut.into_last_ms > 0;
+    let last_kept = cut.keep.last().expect("keep is non-empty").clone();
+    let new_created = if straddles {
+        last_kept.started_at_unix_seconds + (cut.into_last_ms / 1000) as i64
+    } else {
+        cut.after
+            .first()
+            .map(|c| c.started_at_unix_seconds)
+            .ok_or_else(|| AppError::Config("nothing recorded after that point".into()))?
+    };
+    let first_index = if straddles {
+        last_kept.index
+    } else {
+        cut.after.first().expect("after is non-empty").index
+    };
+    let new_id = format!("daisy-{new_created}");
+    let new_root = app.profile.session_path(&new_id);
+    if new_root.exists() {
+        return Err(AppError::Config(format!("session {new_id} already exists")));
+    }
+    std::fs::create_dir_all(new_root.join("chunks"))
+        .map_err(|e| AppError::Io(format!("create {}: {e}", new_root.display())))?;
+
+    // Moved before either manifest is written: on failure the source is
+    // intact and the new session is an empty directory.
+    for c in &cut.after {
+        let (Some(from), Some(to)) = (chunk_dir(&root, c), chunk_dir(&new_root, c)) else {
+            continue;
+        };
+        std::fs::rename(&from, &to)
+            .map_err(|e| AppError::Io(format!("move {} -> {}: {e}", from.display(), to.display())))?;
+    }
+
+    // Tail of the straddling chunk becomes the new session's first chunk.
+    let mut new_chunks: Vec<recording::manifest::ChunkManifest> = Vec::new();
+    if straddles {
+        let tails = truncate_chunk_audio(&root, &last_kept, cut.into_last_ms, sample_rate)?;
+        let mut head = last_kept.clone();
+        let tail_secs = tails
+            .values()
+            .map(|v| v.len() as u64 / sample_rate as u64)
+            .max()
+            .unwrap_or(0);
+        for (rel, pcm) in &tails {
+            let dest = new_root.join(rel);
+            if let Some(d) = dest.parent() {
+                std::fs::create_dir_all(d)
+                    .map_err(|e| AppError::Io(format!("create {}: {e}", d.display())))?;
+            }
+            recording::write_wav_mono_i16(&dest, pcm, sample_rate)
+                .map_err(|e| AppError::Io(format!("write {}: {e}", dest.display())))?;
+        }
+        head.started_at_unix_seconds = new_created;
+        head.duration_seconds = Some(tail_secs);
+        head.ended_at_unix_seconds = Some(new_created + tail_secs as i64);
+        // This chunk keeps only the tail, so its first sample is the one that
+        // sat `removed` samples in and the stamps advance with it.
+        let removed = cut.into_last_ms * sample_rate as u64 / 1000;
+        let advance = removed * 1_000_000_000 / sample_rate.max(1) as u64;
+        head.mic_host_ns = head.mic_host_ns.map(|ns| ns + advance);
+        head.system_host_ns = head.system_host_ns.map(|ns| ns + advance);
+        head.mic_samples = head.mic_samples.map(|n| n.saturating_sub(removed));
+        head.system_samples = head.system_samples.map(|n| n.saturating_sub(removed));
+        new_chunks.push(head);
+    }
+    new_chunks.extend(cut.after.iter().cloned());
+    let last = new_chunks.last().expect("new session has a chunk").clone();
+    let new_end = last.ended_at_unix_seconds.unwrap_or(last.started_at_unix_seconds);
+    let moved_indices: Vec<u32> = new_chunks.iter().map(|c| c.index).collect();
+
+    let new_manifest = recording::manifest::SessionManifest {
+        session_id: new_id.clone(),
+        created_at_unix_seconds: new_created,
+        chunks: new_chunks.clone(),
+        finalized_at_unix_seconds: Some(new_end),
+        recording_segments: vec![recording::manifest::RecordingSegment {
+            started_at_unix_seconds: new_created,
+            stopped_at_unix_seconds: Some(new_end),
+            first_chunk_index: first_index,
+            last_chunk_index: Some(last.index),
+        }],
+        title: Some("Split recording".into()),
+        meeting_id: uuid::Uuid::new_v4().to_string(),
+        tag_ids: vec![],
+        attendees: vec![],
+        calendar: None,
+        notes_md_relative: None,
+        sent_integration_ids: vec![],
+        ..manifest.clone()
+    };
+    syncsafe::write_atomic(new_root.join("manifest.json"), &serde_json::to_vec_pretty(&new_manifest)?)?;
+
+    // Chunk-relative times stay correct under the new manifest's zero.
+    for name in ["transcript.json", "transcript.dedup.json"] {
+        let Ok(bytes) = syncsafe::read(root.join(name)) else { continue };
+        let Ok(t) = serde_json::from_slice::<transcript::SessionTranscript>(&bytes) else {
+            continue;
+        };
+        let mut moved = t.clone();
+        moved.session_id = new_id.clone();
+        moved.chunks.retain(|c| moved_indices.contains(&c.chunk_index));
+        syncsafe::write_atomic(new_root.join(name), &serde_json::to_vec_pretty(&moved)?)?;
+    }
+    // live_transcript.jsonl is session-global and a finalize-time input; it
+    // is not carried over.
+
+    let kept = cut.keep.len();
+    let moved = new_chunks.len();
+    let mut keep = cut.keep;
+    if straddles {
+        let head = keep.last_mut().expect("keep is non-empty");
+        let secs = cut.into_last_ms.div_ceil(1000);
+        head.duration_seconds = Some(secs);
+        head.ended_at_unix_seconds = Some(head.started_at_unix_seconds + secs as i64);
+        // Keeps its head, so the stamps stand and only the counts shrink.
+        let kept_samples = cut.into_last_ms * sample_rate as u64 / 1000;
+        head.mic_samples = head.mic_samples.map(|n| n.min(kept_samples));
+        head.system_samples = head.system_samples.map(|n| n.min(kept_samples));
+    }
+    trim_session_to(&root, manifest, keep)?;
+
+    log::info!("split {session_id} at {cut_ms}ms -> {new_id} ({moved} chunk(s) moved)");
+    Ok(SplitOutcome { new_session_id: new_id, chunks_moved: moved, chunks_kept: kept })
+}
+
+/// One diarized speaker cluster surfaced in a session. Either the user
+/// already labelled it (display_name is the user-supplied name + email)
+/// or it gets an auto "Person A/B/C…" assignment in order of appearance.
+#[derive(Debug, Serialize)]
+pub struct SessionSpeaker {
+    pub cluster_id: u32,
+    pub display_name: String,
+    pub email: Option<String>,
+    /// Set when an enrolled voiceprint is currently linked to this cluster.
+    pub voiceprint_id: Option<String>,
+    /// Cosine score from the auto-match that produced this link. None for
+    /// manually-labeled or unmatched clusters.
+    pub match_confidence: Option<f32>,
+    pub is_user_labeled: bool,
+    /// Snippet of the first non-empty segment from this speaker.
+    pub sample_text: Option<String>,
+    /// Total ms of speech attributed to this cluster across the session.
+    pub speech_ms: u32,
+    /// Which capture track this cluster came from (Room = mic, Remote = system).
+    /// Defaults to Remote when unknown.
+    pub side: recording::manifest::SpeakerSide,
+}
+
+/// Resolve a cluster's side from the manifest's `cluster_sides` map; unknown
+/// clusters default to Remote.
+fn side_for(
+    sides: &[recording::manifest::ClusterSide],
+    cluster_id: u32,
+) -> recording::manifest::SpeakerSide {
+    sides
+        .iter()
+        .find(|c| c.cluster_id == cluster_id)
+        .map(|c| c.side)
+        .unwrap_or_default()
+}
+
+/// Re-render `transcript.md` from `transcript.dedup.json` (or `.json` as
+/// fallback) using the current `manifest.speaker_map`. Pure string
+/// processing; no provider call.
+pub fn rerender_session_transcript_impl(app: &AppState, session_id: &str) -> Result<()> {
+    use transcript::render::render_markdown_with_speakers;
+    let root = app.profile.session_path(session_id);
+    if !root.is_dir() {
+        return Err(AppError::SessionNotFound(session_id.into()));
+    }
+    let st_path = crate::commands::session_store::preferred_transcript_path(&root)
+        .ok_or_else(|| {
+            AppError::Config(format!("session {session_id}: no transcript to render"))
+        })?;
+    let st: transcript::SessionTranscript = serde_json::from_slice(&syncsafe::read(&st_path)?)
+        .map_err(|e| AppError::Config(format!("parse transcript: {e}")))?;
+
+    // Same offset/speaker derivation as the dedup/polish renders — one
+    // arithmetic (incl. the corrupt-timestamp clamp) for every render path.
+    let offsets = crate::commands::pipeline::chunk_offsets_ms(&root);
+    let speakers = crate::commands::pipeline::speaker_map_for(&root);
+    let md = render_markdown_with_speakers(&st, &offsets, &speakers);
+    crate::commands::write_transcript_md(&root, &md)?;
+    Ok(())
+}
+
+/// The transcript text of the segments whose audio
+/// `session_speaker_sample_audio_impl` plays for this cluster. Empty string
+/// if no audible speech was gathered.
+pub fn session_speaker_sample_text_impl(
+    app: &AppState,
+    session_id: &str,
+    cluster_id: u32,
+) -> Result<String> {
+    let root = app.profile.session_path(session_id);
+    if !root.is_dir() {
+        return Err(AppError::SessionNotFound(session_id.into()));
+    }
+    const SAMPLE_CAP_MS: u32 = 5_000;
+    let (_pcm, text) = crate::commands::voiceprints::gather_cluster_sample(
+        &root,
+        cluster_id,
+        SAMPLE_CAP_MS,
+    )?;
+    Ok(text)
+}
+
+/// A short (~5 s) clip of the given speaker cluster as 16 kHz mono int16 PCM
+/// in a standard WAV envelope.
+pub fn session_speaker_sample_audio_impl(
+    app: &AppState,
+    session_id: &str,
+    cluster_id: u32,
+) -> Result<Vec<u8>> {
+    let root = app.profile.session_path(session_id);
+    if !root.is_dir() {
+        return Err(AppError::SessionNotFound(session_id.into()));
+    }
+    const SAMPLE_CAP_MS: u32 = 5_000;
+    let pcm = crate::commands::voiceprints::gather_cluster_pcm_capped(
+        &root,
+        cluster_id,
+        SAMPLE_CAP_MS,
+    )?;
+    if pcm.is_empty() {
+        // gather returns empty when the cluster's audio is silence or below
+        // the sample floor.
+        return Err(AppError::Config(
+            "No clear audio for this voice.".to_string(),
+        ));
+    }
+    let spec = hound::WavSpec {
+        channels: 1,
+        sample_rate: 16_000,
+        bits_per_sample: 16,
+        sample_format: hound::SampleFormat::Int,
+    };
+    let mut buf: Vec<u8> = Vec::with_capacity(44 + pcm.len() * 2);
+    {
+        let cursor = std::io::Cursor::new(&mut buf);
+        let mut w = hound::WavWriter::new(cursor, spec)
+            .map_err(|e| AppError::Config(format!("wav writer: {e}")))?;
+        for s in &pcm {
+            w.write_sample(*s)
+                .map_err(|e| AppError::Config(format!("wav write: {e}")))?;
+        }
+        w.finalize()
+            .map_err(|e| AppError::Config(format!("wav finalize: {e}")))?;
+    }
+    Ok(buf)
+}
+
+pub fn list_session_speakers_impl(app: &AppState, session_id: &str) -> Result<Vec<SessionSpeaker>> {
+    let root = app.profile.session_path(session_id);
+    if !root.is_dir() {
+        return Err(AppError::SessionNotFound(session_id.into()));
+    }
+    let Some(st_path) = crate::commands::session_store::preferred_transcript_path(&root) else {
+        return Ok(Vec::new());
+    };
+    let st: transcript::SessionTranscript = serde_json::from_slice(&syncsafe::read(&st_path)?)
+        .map_err(|e| AppError::Config(format!("parse transcript: {e}")))?;
+
+    // Gather order-of-first-appearance, total speech_ms, and sample text from
+    // every track. Mic/MicAec segments carry a speaker_id only when the
+    // session was diarized with the Local-mic/Both scope; segments without a
+    // speaker_id are skipped.
+    let mut order: Vec<u32> = Vec::new();
+    let mut totals: BTreeMap<u32, u32> = BTreeMap::new();
+    let mut samples: BTreeMap<u32, String> = BTreeMap::new();
+    for ch in &st.chunks {
+        for tr in &ch.tracks {
+            for seg in &tr.segments {
+                let Some(sid) = seg.speaker_id else { continue };
+                if !order.contains(&sid) {
+                    order.push(sid);
+                }
+                let dur = seg.end_ms.saturating_sub(seg.start_ms);
+                *totals.entry(sid).or_default() += dur;
+                if !samples.contains_key(&sid) && !seg.text.trim().is_empty() {
+                    let t = seg.text.trim();
+                    let snippet: String = t.chars().take(120).collect();
+                    samples.insert(sid, snippet);
+                }
+            }
+        }
+    }
+
+    // User labels from manifest (if any), plus voiceprint link + match score.
+    type SpeakerMeta = (String, Option<String>, Option<String>, Option<f32>);
+    let mut labels: std::collections::HashMap<u32, SpeakerMeta> = Default::default();
+    let mut cluster_sides: Vec<recording::manifest::ClusterSide> = Vec::new();
+    if let Some(m) = crate::commands::session_store::read_manifest_opt(&root) {
+        cluster_sides = m.cluster_sides.clone();
+        for s in m.speaker_map {
+            labels.insert(
+                s.cluster_id,
+                (s.display_name, s.email, s.voiceprint_id, s.match_confidence),
+            );
+        }
+    }
+
+    let mut out = Vec::with_capacity(order.len());
+    for (i, sid) in order.iter().enumerate() {
+        let auto = format!("Person {}", char::from(b'A' + (i.min(25) as u8)));
+        let (display_name, email, voiceprint_id, match_confidence, is_user_labeled) =
+            match labels.get(sid) {
+                Some((n, e, vp, mc)) => (n.clone(), e.clone(), vp.clone(), *mc, true),
+                None => (auto, None, None, None, false),
+            };
+        out.push(SessionSpeaker {
+            cluster_id: *sid,
+            display_name,
+            email,
+            voiceprint_id,
+            match_confidence,
+            is_user_labeled,
+            sample_text: samples.get(sid).cloned(),
+            speech_ms: totals.get(sid).copied().unwrap_or(0),
+            side: side_for(&cluster_sides, *sid),
+        });
+    }
+
+    // speaker_map labels that appear in no segment (manually added or copied
+    // from a calendar invite) are appended with speech_ms = 0 and no
+    // sample_text.
+    let segment_ids: std::collections::HashSet<u32> = order.iter().copied().collect();
+    let mut manual_ids: Vec<u32> = labels
+        .keys()
+        .filter(|id| !segment_ids.contains(id))
+        .copied()
+        .collect();
+    manual_ids.sort();
+    for sid in manual_ids {
+        if let Some((n, e, vp, mc)) = labels.get(&sid) {
+            out.push(SessionSpeaker {
+                cluster_id: sid,
+                display_name: n.clone(),
+                email: e.clone(),
+                voiceprint_id: vp.clone(),
+                match_confidence: *mc,
+                is_user_labeled: true,
+                sample_text: None,
+                speech_ms: 0,
+                side: side_for(&cluster_sides, sid),
+            });
+        }
+    }
+    Ok(out)
+}
+
+/// Insert a manually-added participant into `manifest.speaker_map`. Returns
+/// the synthesized cluster_id, larger than any existing diarization cluster
+/// or speaker_map entry. The new entry has no segments and `speech_ms = 0`.
+pub fn add_session_speaker_impl(
+    app: &AppState,
+    session_id: &str,
+    display_name: String,
+    email: Option<String>,
+    voiceprint_id: Option<String>,
+) -> Result<u32> {
+    use recording::session::Session;
+    let root = app.profile.session_path(session_id);
+    if !root.is_dir() {
+        return Err(AppError::SessionNotFound(session_id.into()));
+    }
+    let name = display_name.trim().to_string();
+    if name.is_empty() {
+        return Err(AppError::Config("display_name is required".into()));
+    }
+
+    let mut session = Session::load(&root).map_err(|e| AppError::Recording(e.to_string()))?;
+
+    // Next-free cluster_id, minimum 10000; scans both speaker_map and
+    // existing segment speaker_ids.
+    let mut max_id: u32 = 9999;
+    for s in &session.manifest().speaker_map {
+        max_id = max_id.max(s.cluster_id);
+    }
+    for name in ["transcript.dedup.json", "transcript.json"] {
+        let p = root.join(name);
+        let Ok(bytes) = syncsafe::read(&p) else { continue };
+        let Ok(st) = serde_json::from_slice::<transcript::SessionTranscript>(&bytes) else { continue };
+        for ch in &st.chunks {
+            for tr in &ch.tracks {
+                for seg in &tr.segments {
+                    if let Some(sid) = seg.speaker_id {
+                        max_id = max_id.max(sid);
+                    }
+                }
+            }
+        }
+    }
+    let new_cluster_id = max_id + 1;
+
+    let email_for_log = email.clone();
+    session
+        .update_manifest(|m| {
+            m.speaker_map.push(recording::manifest::SpeakerLabel {
+                cluster_id: new_cluster_id,
+                display_name: name.clone(),
+                email: email.clone(),
+                voiceprint_id: voiceprint_id.clone(),
+                match_confidence: None,
+                contact_id: None,
+            });
+        })
+        .map_err(|e| AppError::Recording(e.to_string()))?;
+    log::info!(
+        "add_session_speaker: session={session_id} cluster={new_cluster_id} name={display_name:?} email={email_for_log:?}"
+    );
+    Ok(new_cluster_id)
+}
+
+pub fn read_session_impl(app: &AppState, session_id: &str) -> Result<SessionView> {
+    let root = app.profile.session_path(session_id);
+    if !root.is_dir() {
+        return Err(AppError::SessionNotFound(session_id.into()));
+    }
+    let manifest_bytes = syncsafe::read(root.join("manifest.json"))?;
+    let manifest_json: serde_json::Value = serde_json::from_slice(&manifest_bytes)?;
+    let md_path = root.join("transcript.md");
+    let transcript_md = if md_path.is_file() {
+        Some(syncsafe::read_to_string(&md_path)?)
+    } else {
+        None
+    };
+    Ok(SessionView {
+        session_id: session_id.to_string(),
+        manifest_json,
+        transcript_md,
+        has_transcript: root.join("transcript.json").is_file(),
+        has_dedup: root.join("transcript.dedup.json").is_file(),
+        has_summary: root.join("summary.md").is_file(),
+    })
+}
+
+#[cfg(test)]
+mod side_tests {
+    use super::*;
+    use recording::manifest::{ClusterSide, SpeakerSide};
+
+    #[test]
+    fn side_for_reads_cluster_sides_default_remote() {
+        let sides = vec![ClusterSide { cluster_id: 3, side: SpeakerSide::Room }];
+        assert_eq!(side_for(&sides, 3), SpeakerSide::Room);
+        assert_eq!(side_for(&sides, 0), SpeakerSide::Remote, "unknown cluster defaults Remote");
+        assert_eq!(side_for(&[], 9), SpeakerSide::Remote, "empty map defaults Remote");
+    }
+}
+
+#[cfg(test)]
+mod speaker_list_tests {
+    use super::*;
+    use crate::state::AppState;
+
+    fn app() -> (AppState, tempfile::TempDir) {
+        let tmp = tempfile::tempdir().unwrap();
+        let profile = crate::profile::ProfileDir::at(tmp.path()).unwrap();
+        (AppState::new(profile), tmp)
+    }
+
+    fn seg(start_ms: u32, end_ms: u32, text: &str, speaker_id: Option<u32>) -> transcript::Segment {
+        transcript::Segment { start_ms, end_ms, text: text.into(), confidence: None, speaker_id }
+    }
+
+    #[test]
+    fn mic_track_clusters_are_listed() {
+        let (app, _tmp) = app();
+        let sid = "daisy-test-mic";
+        let root = app.profile.session_path(sid);
+        syncsafe::create_dir_all(&root).unwrap();
+
+        let st = transcript::SessionTranscript {
+            schema_version: transcript::SessionTranscript::SCHEMA,
+            session_id: sid.into(),
+            provider: "local-whisper".into(),
+            model: "base.en".into(),
+            transcribed_at_unix_seconds: 0,
+            chunks: vec![transcript::ChunkTranscript {
+                chunk_index: 1,
+                tracks: vec![
+                    transcript::TrackTranscript {
+                        track: transcript::Track::MicAec,
+                        source_wav_relative: "chunks/0001/mic_aec.wav".into(),
+                        segments: vec![
+                            seg(0, 2000, "hello from alice", Some(0)),
+                            seg(2000, 4000, "and bob here", Some(1)),
+                            seg(4000, 5000, "undiarized = the local user", None),
+                        ],
+                    },
+                    transcript::TrackTranscript {
+                        track: transcript::Track::System,
+                        source_wav_relative: "chunks/0001/system.wav".into(),
+                        segments: vec![], // no segments on the system side
+                    },
+                ],
+            }],
+        };
+        syncsafe::write(root.join("transcript.dedup.json"), serde_json::to_vec(&st).unwrap()).unwrap();
+
+        let speakers = list_session_speakers_impl(&app, sid).unwrap();
+        assert_eq!(speakers.len(), 2, "both mic clusters must be listed");
+        assert_eq!(speakers[0].display_name, "Person A");
+        assert_eq!(speakers[1].display_name, "Person B");
+        assert_eq!(speakers[0].speech_ms, 2000);
+    }
+}
+
+#[cfg(test)]
+mod truncate_tests {
+    use super::*;
+    use crate::state::AppState;
+    use recording::manifest::{ChunkManifest, RecordingSegment, SessionManifest};
+
+    /// Three 300s chunks starting at t=0, with audio and derived artifacts.
+    fn session(tmp: &tempfile::TempDir) -> (AppState, String) {
+        let profile = crate::profile::ProfileDir::at(tmp.path()).unwrap();
+        let app = AppState::new(profile);
+        let sid = "daisy-1000000000";
+        let root = app.profile.session_path(sid);
+        let created = 1_000_000_000i64;
+        let mut chunks = Vec::new();
+        for i in 1..=3u32 {
+            let dir = recording::chunk_dir(&root, i);
+            std::fs::create_dir_all(&dir).unwrap();
+            // 300 s of real PCM at 16 kHz so a mid-chunk cut has samples to
+            // remove and the truncated file can be read back.
+            let pcm = vec![0i16; 300 * 16_000];
+            recording::write_wav_mono_i16(&dir.join("mic.wav"), &pcm, 16_000).unwrap();
+            recording::write_wav_mono_i16(&dir.join("system.wav"), &pcm, 16_000).unwrap();
+            let start = created + ((i - 1) as i64) * 300;
+            chunks.push(ChunkManifest {
+                index: i,
+                started_at_unix_seconds: start,
+                ended_at_unix_seconds: Some(start + 300),
+                duration_seconds: Some(300),
+                mic_wav_relative: recording::chunk_file(std::path::Path::new(""), i, "mic.wav"),
+                system_wav_relative: recording::chunk_file(
+                    std::path::Path::new(""),
+                    i,
+                    "system.wav",
+                ),
+                mic_aec_wav_relative: None,
+                mic_dn_wav_relative: None,
+                mic_host_ns: Some(((i - 1) as u64) * 300 * 1_000_000_000),
+                system_host_ns: Some(((i - 1) as u64) * 300 * 1_000_000_000 + 1_000),
+                mic_samples: Some(300 * 16_000),
+                system_samples: Some(300 * 16_000),
+                mic_voice_processed: false,
+                mic_zero_samples: None,
+                mic_longest_zero_run: None,
+            });
+        }
+        let m = SessionManifest {
+            schema_version: SessionManifest::SCHEMA,
+            session_id: sid.into(),
+            created_at_unix_seconds: created,
+            chunks,
+            recording_segments: vec![RecordingSegment {
+                started_at_unix_seconds: created,
+                stopped_at_unix_seconds: Some(created + 900),
+                first_chunk_index: 1,
+                last_chunk_index: Some(3),
+            }],
+            sample_rate: 16_000,
+            channels: 1,
+            mic_source_id: 0,
+            mic_source_node_name: String::new(),
+            mic_source_description: String::new(),
+            system_source_id: 0,
+            system_source_node_name: String::new(),
+            system_source_description: String::new(),
+            aec_mode: recording::manifest::AecMode::Disabled,
+            finalized_at_unix_seconds: Some(created + 900),
+            title: None,
+            meeting_id: String::new(),
+            tag_ids: vec![],
+            notes_md_relative: None,
+            attendees: vec![],
+            calendar: None,
+            speaker_map: vec![],
+            language: None,
+            diarization_unavailable: false,
+            single_local_speaker: true,
+            expected_speakers: None,
+            sent_integration_ids: vec![],
+            cluster_sides: vec![],
+            interrupted: false,
+            denoise_applied: None,
+        };
+        syncsafe::write(root.join("manifest.json"), &serde_json::to_vec(&m).unwrap()).unwrap();
+        for f in ["summary.json", "summary.md", "chapters.json", "transcript.md"] {
+            std::fs::write(root.join(f), b"x").unwrap();
+        }
+        (app, sid.to_string())
+    }
+
+    #[test]
+    fn cuts_inside_the_chunk_and_drops_the_rest() {
+        let tmp = tempfile::tempdir().unwrap();
+        let (app, sid) = session(&tmp);
+        let root = app.profile.session_path(&sid);
+
+        // 350s falls inside chunk 2 (300..600): chunk 2 is cut 50 s in.
+        let out = truncate_session_after_impl(&app, &sid, 350_000).unwrap();
+        assert_eq!(out.chunks_kept, 2);
+        assert_eq!(out.chunks_removed, 1);
+        assert_eq!(out.duration_seconds, 350, "session ends at the cut, not the chunk");
+
+        assert!(root.join("chunks/0002").is_dir(), "the cut's own chunk stays");
+        let (kept_pcm, _) = recording::read_wav_mono_i16(&root.join("chunks/0002/mic.wav")).unwrap();
+        assert_eq!(kept_pcm.len(), 50 * 16_000, "audio is cut at the cut point");
+        assert!(!root.join("chunks/0003").exists(), "later audio is gone from disk");
+
+        let m: SessionManifest =
+            serde_json::from_slice(&syncsafe::read(root.join("manifest.json")).unwrap()).unwrap();
+        assert_eq!(m.chunks.iter().map(|c| c.index).collect::<Vec<_>>(), vec![1, 2]);
+        assert_eq!(m.recording_segments[0].last_chunk_index, Some(2));
+        assert_eq!(m.recording_segments[0].stopped_at_unix_seconds, Some(1_000_000_350));
+
+        // Artifacts derived from the deleted audio are removed.
+        for f in ["summary.json", "summary.md", "chapters.json", "transcript.md"] {
+            assert!(!root.join(f).exists(), "{f} must be deleted, not left stale");
+        }
+    }
+
+    #[test]
+    fn refuses_a_cut_that_would_empty_the_session_or_change_nothing() {
+        let tmp = tempfile::tempdir().unwrap();
+        let (app, sid) = session(&tmp);
+        // Past the end: nothing to remove.
+        assert!(truncate_session_after_impl(&app, &sid, 5_000_000).is_err());
+        // Still three chunks on disk.
+        assert!(app.profile.session_path(&sid).join("chunks/0003").is_dir());
+    }
+
+    #[test]
+    fn split_moves_the_tail_and_rezeroes_it_without_touching_segments() {
+        let tmp = tempfile::tempdir().unwrap();
+        let (app, sid) = session(&tmp);
+        let root = app.profile.session_path(&sid);
+
+        // A transcript whose chunk-3 segment starts at 0 *within its chunk*.
+        let st = transcript::SessionTranscript {
+            schema_version: 1,
+            session_id: sid.clone(),
+            provider: "t".into(),
+            model: "t".into(),
+            transcribed_at_unix_seconds: 0,
+            chunks: (1..=3u32)
+                .map(|i| transcript::ChunkTranscript {
+                    chunk_index: i,
+                    tracks: vec![transcript::TrackTranscript {
+                        track: transcript::Track::MicAec,
+                        source_wav_relative: format!("chunks/{i:04}/mic.wav").into(),
+                        segments: vec![transcript::Segment {
+                            start_ms: 0,
+                            end_ms: 1000,
+                            text: format!("chunk {i}"),
+                            confidence: None,
+                            speaker_id: None,
+                        }],
+                    }],
+                })
+                .collect(),
+        };
+        syncsafe::write(root.join("transcript.dedup.json"), &serde_json::to_vec(&st).unwrap()).unwrap();
+
+        // 350 s straddles chunk 2, so the tail of chunk 2 plus chunk 3 move.
+        let out = split_session_at_impl(&app, &sid, 350_000).unwrap();
+        assert_eq!(out.chunks_kept, 2);
+        assert_eq!(out.chunks_moved, 2);
+
+        let new_root = app.profile.session_path(&out.new_session_id);
+        let nm: SessionManifest =
+            serde_json::from_slice(&syncsafe::read(new_root.join("manifest.json")).unwrap()).unwrap();
+
+        // The new session starts when its first chunk started; that chunk's
+        // render offset is 0.
+        assert_eq!(nm.created_at_unix_seconds, nm.chunks[0].started_at_unix_seconds);
+        assert_eq!(nm.chunks.iter().map(|c| c.index).collect::<Vec<_>>(), vec![2, 3]);
+        // The moved head holds exactly the audio after the cut.
+        let (tail, _) = recording::read_wav_mono_i16(&new_root.join("chunks/0002/mic.wav")).unwrap();
+        assert_eq!(tail.len(), 250 * 16_000, "chunk 2 was cut 50 s in");
+        assert_eq!(nm.title.as_deref(), Some("Split recording"));
+        assert!(nm.tag_ids.is_empty(), "user metadata does not follow the audio");
+
+        // Audio moved, not copied.
+        assert!(new_root.join("chunks/0003/mic.wav").is_file());
+        assert!(!root.join("chunks/0003").exists());
+
+        // Segments are unchanged; the manifest supplies the new origin.
+        let nt: transcript::SessionTranscript =
+            serde_json::from_slice(&syncsafe::read(new_root.join("transcript.dedup.json")).unwrap())
+                .unwrap();
+        assert_eq!(nt.chunks.iter().map(|c| c.chunk_index).collect::<Vec<_>>(), vec![2, 3]);
+        assert_eq!(nt.chunks[0].tracks[0].segments[0].start_ms, 0);
+        let _ = &nt;
+        assert_eq!(nt.session_id, out.new_session_id);
+
+        // Source keeps only its half.
+        let om: SessionManifest =
+            serde_json::from_slice(&syncsafe::read(root.join("manifest.json")).unwrap()).unwrap();
+        assert_eq!(om.chunks.iter().map(|c| c.index).collect::<Vec<_>>(), vec![1, 2]);
+    }
+
+    /// A split session starts at a non-1 chunk index with no chunk 1 on
+    /// disk. Manifest and transcript chunks pair by index, never position.
+    #[test]
+    fn non_contiguous_chunk_indices_render_with_correct_offsets() {
+        let tmp = tempfile::tempdir().unwrap();
+        let (app, sid) = session(&tmp);
+        let root = app.profile.session_path(&sid);
+
+        // What a split leaves: chunks 3 and 4, session starting at chunk 3.
+        let created = 1_000_000_600i64; // chunk 3's start in the fixture
+        let mut m: SessionManifest =
+            serde_json::from_slice(&syncsafe::read(root.join("manifest.json")).unwrap()).unwrap();
+        m.created_at_unix_seconds = created;
+        m.chunks.retain(|c| c.index == 3);
+        let mut c4 = m.chunks[0].clone();
+        c4.index = 4;
+        c4.started_at_unix_seconds = created + 300;
+        c4.ended_at_unix_seconds = Some(created + 600);
+        c4.mic_wav_relative = "chunks/0004/mic.wav".into();
+        c4.system_wav_relative = "chunks/0004/system.wav".into();
+        m.chunks.push(c4);
+        syncsafe::write(root.join("manifest.json"), &serde_json::to_vec(&m).unwrap()).unwrap();
+
+        // Both transcript chunks carry chunk-RELATIVE times starting at 0.
+        let seg = |t: &str| transcript::Segment {
+            start_ms: 0, end_ms: 1000, text: t.into(), confidence: None, speaker_id: None,
+        };
+        let st = transcript::SessionTranscript {
+            schema_version: 1,
+            session_id: sid.clone(),
+            provider: "t".into(),
+            model: "t".into(),
+            transcribed_at_unix_seconds: 0,
+            chunks: vec![3u32, 4]
+                .into_iter()
+                .map(|i| transcript::ChunkTranscript {
+                    chunk_index: i,
+                    tracks: vec![transcript::TrackTranscript {
+                        track: transcript::Track::MicAec,
+                        source_wav_relative: format!("chunks/{i:04}/mic.wav").into(),
+                        segments: vec![seg(&format!("chunk {i}"))],
+                    }],
+                })
+                .collect(),
+        };
+        syncsafe::write(root.join("transcript.dedup.json"), &serde_json::to_vec(&st).unwrap()).unwrap();
+
+        rerender_session_transcript_impl(&app, &sid).unwrap();
+        let md = std::fs::read_to_string(root.join("transcript.md")).unwrap();
+
+        // The first chunk is index 3 and renders at zero.
+        assert!(md.contains("[00:00:00]"), "first chunk re-zeroes regardless of its index:\n{md}");
+        // The second offsets by elapsed time from the manifest.
+        assert!(md.contains("[00:05:00]"), "second chunk offsets by real elapsed time:\n{md}");
+        assert!(!md.contains("[00:15:00]"), "index must not be treated as an offset:\n{md}");
+    }
+
+    /// One long chunk, cut in the middle: with no later chunk to drop, the
+    /// cut must still remove audio inside the chunk rather than erroring
+    /// with "nothing recorded after that point".
+    #[test]
+    fn cuts_a_single_long_chunk() {
+        let tmp = tempfile::tempdir().unwrap();
+        let (app, sid) = session(&tmp);
+        let root = app.profile.session_path(&sid);
+
+        // Collapse the fixture to one chunk, as a real 18-minute recording is.
+        let mut m: SessionManifest =
+            serde_json::from_slice(&syncsafe::read(root.join("manifest.json")).unwrap()).unwrap();
+        m.chunks.retain(|c| c.index == 1);
+        m.chunks[0].duration_seconds = Some(300);
+        m.recording_segments[0].last_chunk_index = Some(1);
+        syncsafe::write(root.join("manifest.json"), &serde_json::to_vec(&m).unwrap()).unwrap();
+        std::fs::remove_dir_all(root.join("chunks/0002")).unwrap();
+        std::fs::remove_dir_all(root.join("chunks/0003")).unwrap();
+
+        let out = truncate_session_after_impl(&app, &sid, 120_000).unwrap();
+        assert_eq!(out.chunks_kept, 1);
+        assert_eq!(out.chunks_removed, 0, "no whole chunk goes; the audio is cut");
+        assert_eq!(out.duration_seconds, 120);
+
+        let (pcm, _) = recording::read_wav_mono_i16(&root.join("chunks/0001/mic.wav")).unwrap();
+        assert_eq!(pcm.len(), 120 * 16_000);
+
+        // A cut past the end still refuses.
+        assert!(truncate_session_after_impl(&app, &sid, 900_000).is_err());
+    }
+
+    fn manifest_of(app: &AppState, sid: &str) -> SessionManifest {
+        let p = app.profile.session_path(sid).join("manifest.json");
+        serde_json::from_slice(&syncsafe::read(p).unwrap()).unwrap()
+    }
+
+    #[test]
+    fn truncate_shrinks_the_sample_count_and_keeps_the_stamp() {
+        let tmp = tempfile::tempdir().unwrap();
+        let (app, sid) = session(&tmp);
+        truncate_session_after_impl(&app, &sid, 450_000).unwrap();
+        let m = manifest_of(&app, &sid);
+        let last = m.chunks.last().unwrap();
+        assert_eq!(last.index, 2);
+        assert_eq!(last.mic_host_ns, Some(300 * 1_000_000_000));
+        assert_eq!(last.system_host_ns, Some(300 * 1_000_000_000 + 1_000));
+        assert_eq!(last.mic_samples, Some(150 * 16_000));
+        assert_eq!(last.system_samples, Some(150 * 16_000));
+    }
+
+    #[test]
+    fn split_advances_the_new_sessions_stamp_by_the_removed_prefix() {
+        let tmp = tempfile::tempdir().unwrap();
+        let (app, sid) = session(&tmp);
+        let out = split_session_at_impl(&app, &sid, 450_000).unwrap();
+        let m = manifest_of(&app, &out.new_session_id);
+        let head = &m.chunks[0];
+        assert_eq!(head.mic_host_ns, Some(450 * 1_000_000_000));
+        assert_eq!(head.system_host_ns, Some(450 * 1_000_000_000 + 1_000));
+        assert_eq!(head.mic_samples, Some(150 * 16_000));
+    }
+
+    #[test]
+    fn split_shrinks_the_original_head_chunk_count_only() {
+        let tmp = tempfile::tempdir().unwrap();
+        let (app, sid) = session(&tmp);
+        split_session_at_impl(&app, &sid, 450_000).unwrap();
+        let m = manifest_of(&app, &sid);
+        let head = m.chunks.last().unwrap();
+        assert_eq!(head.index, 2);
+        assert_eq!(head.mic_host_ns, Some(300 * 1_000_000_000));
+        assert_eq!(head.mic_samples, Some(150 * 16_000));
+    }
+
+    #[test]
+    fn whole_chunk_removal_carries_timing_through_unchanged() {
+        let tmp = tempfile::tempdir().unwrap();
+        let (app, sid) = session(&tmp);
+        truncate_session_after_impl(&app, &sid, 600_000).unwrap();
+        let m = manifest_of(&app, &sid);
+        assert_eq!(m.chunks[0].mic_host_ns, Some(0));
+        assert_eq!(m.chunks[0].mic_samples, Some(300 * 16_000));
+        assert_eq!(m.chunks[1].mic_host_ns, Some(300 * 1_000_000_000));
+        assert_eq!(m.chunks[1].mic_samples, Some(300 * 16_000));
+    }
+
+}

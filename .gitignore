@@ -1,0 +1,87 @@
+# Working data / runtime artifacts (never commit)
+.remember/
+.daisy-data/
+.claude/*
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/build-daisy/
+.superpowers/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+
+# Rust
+/target/
+**/*.rs.bk
+# Cargo.lock IS committed — Daisy is a workspace with binary targets
+# (daisy-app, daisy-cli), so reproducible builds across machines + CI
+# require pinning the dep graph. (Library-only crates would omit it.)
+
+# Fixtures-internal (the actual .wav files ARE committed)
+crates/audio-engine/tests/fixtures/.cache/
+
+
+# Embedding model + tokenizer (BGE-small) — fetched on demand by
+# scripts/download-embeddings.sh. Bundled into the AppImage at build time.
+/models/embeddings/
+
+# WeSpeaker voiceprint model — fetched by scripts/download-voiceprints.sh,
+# bundled into the AppImage at repack time. The big .onnx stays ignored;
+# the fetch scripts are tracked so Windows/CI can pull the model.
+/models/voiceprints/*
+!/models/voiceprints/download.ps1
+
+# Local whisper ggml models (dev/test inputs, e.g. the gated replay
+# harness); never checked in and no longer bundled.
+/models/whisper/
+/models/parakeet/
+/models/vad/
+
+# speakrs diarization models — ONNX + PLDA fetched by download-voiceprints.sh,
+# native-CoreML .mlmodelc layered in by build-release-mac.sh. ~57 MB ONNX +
+# 407 MB mlmodelc (macOS); never checked in. Fetch scripts are tracked.
+/models/speakrs/
+
+# Local secrets and build artifacts (never commit)
+.groq
+.agents/
+skills-lock.json
+**/package.json.new
+
+# Per-package node_modules (frontend lives in apps/, no root one)
+**/node_modules/
+/dist/
+.pnpm-store/
+/crates/tauri-app/binaries/
+
+# TypeScript incremental-build cache; rewritten on every tsc run, so it
+# would show up dirty in every commit.
+apps/frontend/tsconfig.tsbuildinfo
+bench-cache/
+crates/tauri-app/sessions/
+
+# Vite cache (if a tool runs from repo root)
+.vite/
+
+# Azure Trusted Signing service-principal creds (never commit)
+.creds-artifact-signing
+# AWS short-term admin creds (never commit)
+.creds-aws
+
+# Apple Developer ID cert export + its password (never commit)
+.apexissol_dev_id.p12
+.creds-apexissol_dev_id
+
+# Playwright MCP session artifacts + ad-hoc UI screenshots
+.playwright-mcp/
+/daisy-*.png
+.url
+
+# Real user meeting telemetry for local analysis — never commit
+testdata-field/
+
+# Probe captures — room audio, never commit
+diagnostics-out/
+.daisy-build-sha

@@ -1,0 +1,206 @@
+name: test-build
+
+# On-demand test builds from any branch (Actions → test-build → Run
+# workflow → pick the branch). Runs the same build scripts as release.yml
+# on the same self-hosted runners, but publishes nothing: artifacts are
+# SHA-named and attached to the workflow run. Signing uses the same repo
+# secrets; absent secrets degrade to unsigned/ad-hoc builds.
+on:
+  workflow_dispatch:
+    inputs:
+      linux:
+        type: boolean
+        default: true
+      win:
+        type: boolean
+        default: true
+      mac:
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    if: ${{ inputs.linux }}
+    name: test linux
+    runs-on: [self-hosted, Linux, X64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build (container, Ubuntu 24.04 baseline)
+        run: bash scripts/build-release.sh
+
+      - name: SHA-name artifacts
+        id: art
+        run: |
+          VER="$(grep -m1 '^version' crates/tauri-app/Cargo.toml | sed -E 's/.*"([^"]+)".*/\1/')"
+          SHA="$(git rev-parse --short HEAD)"
+          mkdir -p test-artifacts
+          cp "dist/Daisy_${VER}_amd64.AppImage" "test-artifacts/Daisy_${VER}_${SHA}_amd64.AppImage"
+          cp "dist/Daisy_${VER}_amd64.deb" "test-artifacts/Daisy_${VER}_${SHA}_amd64.deb"
+          echo "name=daisy-linux-${VER}-${SHA}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.art.outputs.name }}
+          path: test-artifacts/*
+          retention-days: 14
+
+  win:
+    if: ${{ inputs.win }}
+    name: test windows
+    runs-on: [self-hosted, Windows, X64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Add Git Bash to PATH (Windows)
+        shell: powershell
+        run: |
+          Add-Content -Path $env:GITHUB_PATH -Value "C:\Program Files\Git\bin"
+          Add-Content -Path $env:GITHUB_PATH -Value "C:\Program Files\Git\usr\bin"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      - name: Install tauri-cli (Windows)
+        shell: powershell
+        run: |
+          if (-not (Get-Command cargo-tauri -ErrorAction SilentlyContinue)) {
+            cargo install tauri-cli --version "^2" --locked
+          }
+
+      # Same signing setup as release.yml; build-release.ps1 falls back to
+      # an unsigned build when the creds file is absent.
+      - name: Set up Windows code signing
+        shell: powershell
+        env:
+          TENANT_ID: ${{ secrets.TENANT_ID }}
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          SECRET_VALUE: ${{ secrets.SECRET_VALUE }}
+          ACCOUNT_URI: ${{ secrets.ACCOUNT_URI }}
+          ACCOUNT_NAME: ${{ secrets.ACCOUNT_NAME }}
+          CERT_PROFILE_NAME: ${{ secrets.CERT_PROFILE_NAME }}
+        run: |
+          if (-not $env:TENANT_ID) { Write-Host "no signing secrets - unsigned test build"; exit 0 }
+          $env:DOTNET_ROOT = 'C:\tools\dotnet'
+          $env:PATH = "C:\tools\dotnet;$env:PATH"
+          $signExe = Join-Path $env:USERPROFILE '.dotnet\tools\sign.exe'
+          if (-not (Test-Path $signExe)) {
+            dotnet tool install --global sign --prerelease --add-source https://api.nuget.org/v3/index.json
+          }
+          @(
+            "TENANT_ID=$env:TENANT_ID",
+            "CLIENT_ID=$env:CLIENT_ID",
+            "SECRET_VALUE=$env:SECRET_VALUE",
+            "ACCOUNT_URI=$env:ACCOUNT_URI",
+            "ACCOUNT_NAME=$env:ACCOUNT_NAME",
+            "CERT_PROFILE_NAME=$env:CERT_PROFILE_NAME"
+          ) | Set-Content -Path .creds-artifact-signing -Encoding ascii
+
+      - name: Build (Windows)
+        shell: powershell
+        run: |
+          $env:DOTNET_ROOT = 'C:\tools\dotnet'
+          $env:PATH = "C:\tools\dotnet;$($env:USERPROFILE)\.dotnet\tools;$env:PATH"
+          $env:CMAKE_POLICY_VERSION_MINIMUM = '3.5'
+          $ver = (Select-String '^version = "([^"]+)"' -Path crates/tauri-app/Cargo.toml | Select-Object -First 1).Matches.Groups[1].Value
+          .\scripts\build-release.ps1 -Version $ver
+
+      - name: SHA-name artifacts
+        id: art
+        shell: powershell
+        run: |
+          $ver = (Select-String '^version = "([^"]+)"' -Path crates/tauri-app/Cargo.toml | Select-Object -First 1).Matches.Groups[1].Value
+          $sha = (git rev-parse --short HEAD).Trim()
+          New-Item -ItemType Directory -Force test-artifacts | Out-Null
+          Copy-Item "dist\Daisy_${ver}_x64-setup.exe" "test-artifacts\Daisy_${ver}_${sha}_x64-setup.exe"
+          Copy-Item "dist\daisy-${ver}.zip" "test-artifacts\daisy-${ver}-${sha}.zip"
+          "name=daisy-win-${ver}-${sha}" | Out-File -Append -FilePath $env:GITHUB_OUTPUT
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.art.outputs.name }}
+          path: test-artifacts/*
+          retention-days: 14
+
+  mac:
+    if: ${{ inputs.mac }}
+    name: test macos
+    runs-on: [self-hosted, macOS, ARM64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      - name: Install cargo-tauri (macOS)
+        run: |
+          export PATH="$HOME/.cargo/bin:$PATH"
+          if ! command -v cargo-tauri >/dev/null 2>&1; then
+            cargo install tauri-cli --version "^2" --locked
+          fi
+
+      # Same keychain setup as release.yml; without the cert secrets the
+      # build proceeds ad-hoc signed.
+      - name: Set up signing keychain
+        env:
+          MAC_CERT_P12: ${{ secrets.MAC_CERT_P12 }}
+          MAC_CERT_P12_PASSWORD: ${{ secrets.MAC_CERT_P12_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "${MAC_CERT_P12:-}" ]; then echo "no cert secret — ad-hoc build"; exit 0; fi
+          KC="$RUNNER_TEMP/daisy-signing.keychain-db"
+          KCPW="$(openssl rand -hex 24)"
+          echo "KC=$KC" >> "$GITHUB_ENV"
+          security delete-keychain "$KC" 2>/dev/null || true
+          security create-keychain -p "$KCPW" "$KC"
+          security set-keychain-settings "$KC"
+          security unlock-keychain -p "$KCPW" "$KC"
+          printf '%s' "$MAC_CERT_P12" | base64 -d > "$RUNNER_TEMP/cert.p12"
+          security import "$RUNNER_TEMP/cert.p12" -k "$KC" \
+            -P "$MAC_CERT_P12_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
+          rm -f "$RUNNER_TEMP/cert.p12"
+          security set-key-partition-list -S "apple-tool:,apple:,codesign:" \
+            -s -k "$KCPW" "$KC" > /dev/null
+          security list-keychains -d user -s "$KC" ~/Library/Keychains/login.keychain-db
+
+      - name: Build (macOS, Metal)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: bash scripts/build-release-mac.sh
+
+      - name: SHA-name artifacts
+        id: art
+        run: |
+          VER="$(grep -m1 '^version' crates/tauri-app/Cargo.toml | sed -E 's/.*"([^"]+)".*/\1/')"
+          SHA="$(git rev-parse --short HEAD)"
+          mkdir -p test-artifacts
+          cp "dist/Daisy_${VER}_aarch64.dmg" "test-artifacts/Daisy_${VER}_${SHA}_aarch64.dmg"
+          echo "name=daisy-mac-${VER}-${SHA}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.art.outputs.name }}
+          path: test-artifacts/*
+          retention-days: 14
+
+      - name: Cleanup
+        if: always()
+        run: |
+          if [ -n "${KC:-}" ]; then
+            security delete-keychain "$KC" 2>/dev/null || true
+            security list-keychains -d user -s ~/Library/Keychains/login.keychain-db
+          fi

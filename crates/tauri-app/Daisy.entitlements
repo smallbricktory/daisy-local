@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!--
+    Hardened-runtime entitlements for the notarized Developer ID build. NOT the
+    App Sandbox (Daisy is direct-download, not Mac App Store).
+
+    - device.audio-input: required or the hardened runtime silently denies both
+      the AVAudioEngine mic capture AND the Core Audio process tap (system audio
+      mix). Pairs with NSMicrophoneUsageDescription + NSAudioCaptureUsageDescription
+      in Info.plist (the TCC prompt strings).
+    - cs.disable-library-validation: Daisy bundles third-party native libraries
+      (ONNX Runtime, whisper Metal) that are signed by other teams (or ad-hoc).
+      Under the hardened runtime, library validation refuses to load a dylib not
+      signed by this app's Team ID, crashing the app at launch. This exception
+      permits loading them. Revisit once we confirm which native deps are static
+      vs dynamic on macOS — drop this if nothing dynamic remains.
+  -->
+  <key>com.apple.security.device.audio-input</key>
+  <true/>
+  <key>com.apple.security.cs.disable-library-validation</key>
+  <true/>
+</dict>
+</plist>

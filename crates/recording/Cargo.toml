@@ -1,0 +1,42 @@
+[package]
+name = "recording"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[[example]]
+name = "live_aec_replay"
+path = "../../diagnostics/audio/live_aec_replay.rs"
+
+[dependencies]
+audio-engine = { path = "../audio-engine" }
+aec = { path = "../aec" }
+denoise = { path = "../denoise" }
+providers-realtime = { path = "../providers-realtime" }
+transcript = { path = "../transcript" }
+syncsafe = { path = "../syncsafe" }
+thiserror.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+hound.workspace = true
+opus.workspace = true
+ogg.workspace = true
+log.workspace = true
+tokio.workspace = true
+uuid = { workspace = true }
+rayon.workspace = true
+symphonia.workspace = true
+
+# Finalize AEC workers drop to background scheduling priority so they yield
+# to a concurrent recording's capture and live-ASR threads.
+[target.'cfg(target_os = "linux")'.dependencies]
+libc = "0.2"
+
+[target.'cfg(target_os = "windows")'.dependencies]
+windows = { version = "0.59", features = ["Win32_Foundation", "Win32_System_Threading", "Win32_System_Power"] }
+
+[dev-dependencies]
+tempfile.workspace = true
+env_logger.workspace = true
+tokio = { workspace = true, features = ["test-util", "macros"] }
