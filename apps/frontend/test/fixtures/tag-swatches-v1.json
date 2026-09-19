@@ -1,0 +1,8 @@
+{
+  "_note": "The tag colours both pickers offer. A tag made on either device syncs as a hex in tags.json, so the list and its order are a contract, not a style choice. Identical copies: smbr-daisy-app apps/frontend/test/fixtures/tag-swatches-v1.json and smbr-daisy-ios ios/DaisyKit/Tests/DaisyKitTests/Fixtures/tag-swatches-v1.json. Twelve hues around the wheel at one lightness; each clears 2:1 against white and against black bar yellow, which measures 1.96 on white and 10.7 on black — the measure is that a 7px dot is seen, never that text sits on it.",
+  "swatches": [
+    "#DD3131", "#EB760F", "#E0B406", "#73A923",
+    "#2BA13B", "#1FA382", "#1C9AAB", "#1E81C8",
+    "#3664E2", "#7B5AD8", "#B450CE", "#DD4099"
+  ]
+}

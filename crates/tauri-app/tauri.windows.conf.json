@@ -1,0 +1,15 @@
+{
+  "bundle": {
+    "resources": {
+      "../../models/parakeet/parakeet-tdt-0.6b-v2-int8/encoder.int8.onnx": "models/parakeet/parakeet-tdt-0.6b-v2-int8/encoder.int8.onnx",
+      "../../models/parakeet/parakeet-tdt-0.6b-v2-int8/decoder.int8.onnx": "models/parakeet/parakeet-tdt-0.6b-v2-int8/decoder.int8.onnx",
+      "../../models/parakeet/parakeet-tdt-0.6b-v2-int8/joint.pred.int8.onnx": "models/parakeet/parakeet-tdt-0.6b-v2-int8/joint.pred.int8.onnx",
+      "../../models/parakeet/parakeet-tdt-0.6b-v2-int8/joint.enc.int8.onnx": "models/parakeet/parakeet-tdt-0.6b-v2-int8/joint.enc.int8.onnx",
+      "../../models/parakeet/parakeet-tdt-0.6b-v2-int8/joint.joint_net.int8.onnx": "models/parakeet/parakeet-tdt-0.6b-v2-int8/joint.joint_net.int8.onnx",
+      "../../models/parakeet/parakeet-tdt-0.6b-v2-int8/nemo128.onnx": "models/parakeet/parakeet-tdt-0.6b-v2-int8/nemo128.onnx",
+      "../../models/parakeet/parakeet-tdt-0.6b-v2-int8/tokens.txt": "models/parakeet/parakeet-tdt-0.6b-v2-int8/tokens.txt",
+      "../../models/parakeet/parakeet-tdt-0.6b-v2-int8/model_desc.json": "models/parakeet/parakeet-tdt-0.6b-v2-int8/model_desc.json",
+      "../../models/vad/silero_vad_v5.onnx": "models/vad/silero_vad_v5.onnx"
+    }
+  }
+}

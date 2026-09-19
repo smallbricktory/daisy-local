@@ -1,0 +1,25 @@
+[package]
+name = "transcript"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[[example]]
+name = "echo_probe"
+path = "../../diagnostics/transcript/echo_probe.rs"
+
+[[example]]
+name = "dup_probe"
+path = "../../diagnostics/transcript/dup_probe.rs"
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+hound.workspace = true
+log.workspace = true
+xcorr = { path = "../xcorr" }
+
+[dev-dependencies]
+tempfile.workspace = true

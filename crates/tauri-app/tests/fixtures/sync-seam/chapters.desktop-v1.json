@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "session_id": "daisy-1700000000",
+  "model": "gemma-4-e2b",
+  "generated_at_unix_seconds": 1700000660,
+  "chapters": [
+    { "title": "Widget scope", "start_hms": "00:00:00", "summary": "What the tide-chart widget shows and who asked for it." },
+    { "title": "Flag rollout", "start_hms": "00:01:01" },
+    { "title": "Release cadence", "start_hms": "00:12:34", "summary": "Friday review moves to Thursday." }
+  ]
+}

@@ -1,0 +1,196 @@
+// SPDX-License-Identifier: Elastic-2.0
+// Copyright (c) 2026 Apexis Solutions Inc. (dba Small Bricktory) — see LICENSE
+import { useEffect, useState } from 'react';
+import { copyToClipboard, errStr, tauri, type MachineSettings, type McpStatus } from '../tauri';
+import { Field } from './Field';
+import { Toggle } from './Toggle';
+import { Group } from './SettingsGroup';
+
+/** Settings → MCP: expose the meeting library to local MCP clients
+ *  (Claude Code, Claude Desktop). Loopback-only HTTP + bearer token —
+ *  see docs/MCP.md for the security model. */
+export function McpSettings({
+  settings, update,
+}: {
+  settings: MachineSettings;
+  update: <K extends keyof MachineSettings>(key: K, value: MachineSettings[K]) => Promise<void>;
+}) {
+  const [status, setStatus] = useState<McpStatus | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  // Local edit buffer for the port input — committed (validated + saved) on blur
+  // / Enter, not on every keystroke. Kept in sync if the setting changes elsewhere.
+  const [portInput, setPortInput] = useState(String(settings.mcp_port));
+
+  useEffect(() => {
+    tauri.mcpStatus().then(setStatus).catch((e: unknown) => setError(errStr(e)));
+  }, []);
+
+  useEffect(() => { setPortInput(String(settings.mcp_port)); }, [settings.mcp_port]);
+
+  async function commitPort() {
+    const n = Number(portInput);
+    if (!Number.isInteger(n) || n < 1024 || n > 65535) {
+      setError('Port must be a whole number from 1024 to 65535.');
+      setPortInput(String(settings.mcp_port));
+      return;
+    }
+    if (n === settings.mcp_port) { setError(null); return; }
+    setBusy(true);
+    setError(null);
+    try {
+      // Checks availability before saving; a clash is caught up front, not
+      // only when the server tries to bind.
+      if (!(await tauri.mcpPortAvailable(n))) {
+        setError(`Port ${n} is already in use — pick another.`);
+        setPortInput(String(settings.mcp_port));
+        return;
+      }
+      await update('mcp_port', n);
+      // Rebind onto the new port if the server is running.
+      if (settings.mcp_enabled) setStatus(await tauri.mcpApply());
+    } catch (e: unknown) {
+      setError(errStr(e));
+      setPortInput(String(settings.mcp_port));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function setEnabled(on: boolean) {
+    setBusy(true);
+    setError(null);
+    try {
+      await update('mcp_enabled', on);
+      setStatus(await tauri.mcpApply());
+    } catch (e: unknown) {
+      setError(errStr(e)); // e.g. port already in use — surfaced from the bind
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function regenerate() {
+    setBusy(true);
+    setError(null);
+    try {
+      setStatus(await tauri.mcpRegenerateToken());
+    } catch (e: unknown) {
+      setError(errStr(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function copyCommand() {
+    if (!status) return;
+    await copyToClipboard(status.claude_command);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
+
+  return (
+    <Group title="MCP server">
+      <p className="meta" style={{ maxWidth: 560 }}>
+        Lets MCP clients on this computer (Claude Code, Claude Desktop) read your
+        meeting library: list sessions, fetch transcripts and summaries, semantic
+        search. Read-only and loopback-only — never reachable from the network.
+        Queries are refused while the vault is locked.
+      </p>
+
+      <Field label="Local MCP server">
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 'var(--t-ui)' }}>
+          <Toggle
+            testId="mcp-enabled"
+            label="Enable the local MCP server"
+            checked={!!settings.mcp_enabled}
+            disabled={busy}
+            onChange={(on) => void setEnabled(on)}
+          />
+          <span>Enable</span>
+        </div>
+        {error && <p className="meta meta--danger">{error}</p>}
+      </Field>
+
+      <Field label="Port">
+        <input
+          data-testid="mcp-port"
+          type="number"
+          min={1024}
+          max={65535}
+          value={portInput}
+          disabled={busy}
+          onChange={(e) => setPortInput(e.target.value)}
+          onBlur={() => void commitPort()}
+          onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+          style={{ width: 120 }}
+        />
+        <p className="meta" style={{ maxWidth: 560 }}>
+          Loopback port for the MCP server (default 32479). Change it if another
+          app already uses this one — the new port is checked for availability
+          before it's saved.
+        </p>
+      </Field>
+
+      {settings.mcp_enabled && status && (
+        <>
+          <Field label="Status">
+            <p className="meta" style={{ margin: 0 }}>
+              {status.running
+                ? `Running at ${status.endpoint}`
+                : 'Not running — check the log (port conflict?).'}
+            </p>
+          </Field>
+
+          {!status.claude_command && (
+            <p className="meta" style={{ maxWidth: 560 }}>
+              Unlock the vault to reveal the connect command — the token is
+              stored encrypted and is only available while Daisy is unlocked.
+            </p>
+          )}
+
+          {status.claude_command && (
+          <Field label="Connect Claude Code">
+            <pre
+              className="command-block"
+            >
+              {status.claude_command}
+            </pre>
+            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+              <button data-testid="mcp-copy" type="button" className="btn" onClick={() => void copyCommand()}>
+                {copied ? 'Copied ✓' : 'Copy command'}
+              </button>
+              <button data-testid="mcp-regenerate" type="button" className="btn" disabled={busy} onClick={() => void regenerate()}>
+                Regenerate token
+              </button>
+            </div>
+            <p className="meta" style={{ maxWidth: 560 }}>
+              The command embeds a secret token — treat it like a password.
+              Regenerating invalidates previously configured clients.
+            </p>
+          </Field>
+          )}
+
+          <Field label="Write access">
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 'var(--t-ui)' }}>
+              <Toggle
+                testId="mcp-allow-write"
+                label="Allow importing meetings"
+                checked={!!settings.mcp_allow_write}
+                disabled={busy}
+                onChange={(on) => void update('mcp_allow_write', on)}
+              />
+              <span>Allow importing meetings (text only)</span>
+            </div>
+            <p className="meta" style={{ maxWidth: 560 }}>
+              Adds an <code>import_session</code> tool so a client can create new
+              sessions from transcript / summary / notes text. Create-only — it
+              never overwrites or deletes. Leave off if you only want read access.
+            </p>
+          </Field>
+        </>
+      )}
+    </Group>
+  );
+}

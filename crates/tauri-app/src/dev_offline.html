@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Daisy — dev server offline</title>
+  <style>
+    :root {
+      --cream: #F4EFE6;
+      --cream-pure: #FAF6EE;
+      --plum: #4A235A;
+      --ink: #1A1015;
+      --iron: #6c6960;
+      --frost-deep: #CFC2A6;
+      --sunset: #FF6A00;
+      --sunset-deep: #D45200;
+      --indigo: #3B4B9B;
+      --indigo-deep: #2E3D8C;
+      --amber: #FFC13B;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      margin: 0;
+      background:
+        radial-gradient(900px 500px at 12% 0%, rgba(255, 193, 59, 0.10), transparent 60%),
+        radial-gradient(800px 600px at 92% 100%, rgba(59, 75, 155, 0.06), transparent 60%),
+        var(--cream);
+      color: var(--ink);
+      font-family: "Inter", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 56px 40px 40px;
+    }
+    .eyebrow {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--sunset);
+      margin-bottom: 8px;
+    }
+    h1 {
+      font-family: "Cormorant Garamond", "Tiempos Headline", Georgia, serif;
+      font-weight: 600;
+      font-size: clamp(32px, 4vw, 44px);
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      color: var(--plum);
+      margin: 0 0 12px;
+    }
+    h1 em { font-style: italic; color: var(--sunset); font-weight: 500; }
+    .lede {
+      font-size: 15px;
+      line-height: 1.55;
+      color: var(--plum);
+      max-width: 56ch;
+      margin: 0 0 28px;
+    }
+    .lede code {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 13px;
+      background: rgba(74, 35, 90, 0.06);
+      padding: 1px 6px;
+      border-radius: 3px;
+    }
+    section {
+      background: var(--cream-pure);
+      border: 1px solid var(--frost-deep);
+      border-left: 4px solid var(--sunset);
+      border-radius: 8px;
+      padding: 18px 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 1px 0 rgba(74, 35, 90, 0.04), 0 14px 28px -22px rgba(74, 35, 90, 0.18);
+    }
+    section.alt { border-left-color: var(--indigo); }
+    section h2 {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--sunset);
+      margin: 0 0 6px;
+      font-weight: 600;
+    }
+    section.alt h2 { color: var(--indigo-deep); }
+    section h3 {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--plum);
+      margin: 0 0 6px;
+      letter-spacing: -0.01em;
+    }
+    section p { font-size: 13px; line-height: 1.5; color: var(--ink); margin: 0 0 10px; }
+    pre {
+      background: var(--cream);
+      border: 1px solid var(--frost-deep);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin: 8px 0 0;
+      overflow-x: auto;
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 12.5px;
+      line-height: 1.5;
+      color: var(--ink);
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    button {
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 9px 18px;
+      border-radius: 6px;
+      border: 1px solid var(--frost-deep);
+      background: var(--cream-pure);
+      color: var(--plum);
+      cursor: pointer;
+      transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    }
+    button:hover { transform: translateY(-1px); border-color: var(--indigo); }
+    button.primary {
+      background: var(--sunset);
+      color: var(--cream-pure);
+      border-color: var(--sunset-deep);
+      box-shadow: 0 6px 16px -8px rgba(255, 106, 0, 0.45);
+    }
+    button.primary:hover { background: var(--sunset-deep); }
+    .footnote {
+      font-size: 12px;
+      color: var(--iron);
+      margin-top: 18px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="eyebrow">debug build · frontend offline</div>
+    <h1>Vite dev server <em>isn't running</em></h1>
+    <p class="lede">
+      This is a <strong>debug</strong> build of Daisy. Debug builds load the React frontend
+      from the local Vite dev server at <code>http://localhost:5173</code>, which isn't
+      responding right now (<code>ECONNREFUSED</code>). Two ways to get going:
+    </p>
+
+    <section>
+      <h2>Option A · keep dev mode</h2>
+      <h3>Start Vite in another terminal</h3>
+      <p>Then click <strong>Reload</strong> below.</p>
+<pre>cd ~/repos/smbr-daisy-app/apps/frontend
+pnpm dev</pre>
+    </section>
+
+    <section class="alt">
+      <h2>Option B · ship-style</h2>
+      <h3>Use the release binary instead</h3>
+      <p>
+        Release builds embed a prebuilt frontend bundle and don't need a dev server. Quit
+        this window, then:
+      </p>
+<pre>cd ~/repos/smbr-daisy-app
+PATH="$HOME/.cargo/bin:$PATH" cargo build --release -p tauri-app
+target/release/daisy-app &amp;</pre>
+    </section>
+
+    <div class="actions">
+      <button class="primary" onclick="window.location.reload()">Reload</button>
+      <button onclick="window.close()">Quit</button>
+    </div>
+
+    <p class="footnote">
+      You're seeing this page because the debug build's webview tried to load
+      <code>http://localhost:5173</code> and the connection was refused. The release
+      build won't ever show it.
+    </p>
+  </main>
+</body>
+</html>

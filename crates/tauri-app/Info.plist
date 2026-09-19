@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!--
+    Tauri merges this Info.plist into the bundled macOS app. Each TCC service
+    Daisy touches needs its own usage string, or the OS denies it (feeding
+    zeros) or kills the process instead of prompting:
+      - NSMicrophoneUsageDescription  -> AVAudioEngine mic input (the room).
+      - NSAudioCaptureUsageDescription -> Core Audio process tap for the system
+        audio mix (the remote side). Verified on hardware: without this key the
+        tap is granted-but-silent. No screen-recording consent is needed.
+      - NSBluetoothAlwaysUsageDescription -> the CoreBluetooth peripheral that
+        wakes a paired phone. Without this key the first CBPeripheralManager
+        is a SIGKILL, not a denial.
+  -->
+  <key>NSMicrophoneUsageDescription</key>
+  <string>Daisy records your microphone so it can transcribe and summarize your meetings. Audio stays on your device.</string>
+  <key>NSAudioCaptureUsageDescription</key>
+  <string>Daisy records this computer's audio (the people you're meeting with) so it can transcribe and summarize your meetings. Audio stays on your device.</string>
+  <key>NSBluetoothAlwaysUsageDescription</key>
+  <string>Daisy uses Bluetooth to wake your paired phone when a recording is ready for it. Your meetings stay on your devices.</string>
+</dict>
+</plist>

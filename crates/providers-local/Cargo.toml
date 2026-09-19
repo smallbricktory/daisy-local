@@ -1,0 +1,59 @@
+[package]
+name = "providers-local"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[[example]]
+name = "bench"
+path = "../../diagnostics/asr/bench.rs"
+
+[[example]]
+name = "whisper_text"
+path = "../../diagnostics/asr/whisper_text.rs"
+
+[[example]]
+name = "whisper_bench"
+path = "../../diagnostics/asr/whisper_bench.rs"
+
+[[example]]
+name = "live_replay"
+path = "../../diagnostics/asr/live_replay.rs"
+
+[dependencies]
+providers-http = { path = "../providers-http" }   # for the Transcriber trait
+providers-realtime = { path = "../providers-realtime" }  # RealtimeTranscriber trait (live streaming)
+transcript = { path = "../transcript" }
+whisper-rs = { workspace = true }
+tokio = { workspace = true }
+async-trait = { workspace = true }
+log = { workspace = true }
+anyhow = { workspace = true }
+reqwest = { workspace = true }                     # for the model-download helper (blocking)
+sha2 = { workspace = true }
+flate2 = "1"                                       # parakeet release tarball extract
+tar = "0.4"
+ort = { workspace = true }                         # parakeet ONNX pipeline
+ndarray = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }                       # ParakeetTune rides the settings file
+
+# Whisper GPU/BLAS backends, per platform. Build-time requirements
+# (scripts/setup-dev.sh installs them on Linux):
+#   - macOS: Metal backend; needs only the Xcode toolchain.
+#   - Linux: Vulkan (GPU offload, CPU fallback at runtime) + OpenBLAS (fast
+#     CPU path). Needs glslc + libvulkan-dev + libopenblas-dev; whisper-rs-sys
+#     wants explicit BLAS header paths (BLAS_INCLUDE_DIRS, set in
+#     .cargo/config.toml — it doesn't probe pkg-config).
+#   - Windows: Vulkan. Needs the Vulkan SDK (VULKAN_SDK + glslc on PATH).
+[target.'cfg(target_os = "macos")'.dependencies]
+whisper-rs = { workspace = true, features = ["metal"] }
+[target.'cfg(target_os = "linux")'.dependencies]
+whisper-rs = { workspace = true, features = ["openblas", "vulkan"] }
+[target.'cfg(windows)'.dependencies]
+whisper-rs = { workspace = true, features = ["vulkan"] }
+
+[dev-dependencies]
+tempfile.workspace = true
+hound.workspace = true

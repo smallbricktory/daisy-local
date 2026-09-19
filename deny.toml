@@ -1,0 +1,49 @@
+# cargo-deny advisory policy. CI runs `cargo deny check advisories`.
+#
+# Vulnerabilities and unsound advisories fail the build. Every exception below
+# is a transitive dependency with no upgrade path, with the reason it is not
+# reachable as a fix here. Re-check the list whenever Tauri or deep_filter
+# moves — an entry that becomes fixable should be fixed, not ignored.
+
+[advisories]
+version = 2
+yanked = "deny"
+ignore = [
+  # GTK3 bindings, unmaintained upstream. Tauri v2's Linux webview stack is
+  # GTK3 (tao/wry); the fix is Tauri moving off GTK3, not a version bump.
+  { id = "RUSTSEC-2024-0411", reason = "gtk3 via tauri/tao — no GTK4 path in Tauri v2" },
+  { id = "RUSTSEC-2024-0412", reason = "gtk3 via tauri/tao — no GTK4 path in Tauri v2" },
+  { id = "RUSTSEC-2024-0413", reason = "gtk3 via tauri/tao — no GTK4 path in Tauri v2" },
+  { id = "RUSTSEC-2024-0414", reason = "gtk3 via tauri/tao — no GTK4 path in Tauri v2" },
+  { id = "RUSTSEC-2024-0415", reason = "gtk3 via tauri/tao — no GTK4 path in Tauri v2" },
+  { id = "RUSTSEC-2024-0416", reason = "gtk3 via tauri/tao — no GTK4 path in Tauri v2" },
+  { id = "RUSTSEC-2024-0417", reason = "gtk3 via tauri/tao — no GTK4 path in Tauri v2" },
+  { id = "RUSTSEC-2024-0418", reason = "gtk3 via tauri/tao — no GTK4 path in Tauri v2" },
+  { id = "RUSTSEC-2024-0419", reason = "gtk3 via tauri/tao — no GTK4 path in Tauri v2" },
+  { id = "RUSTSEC-2024-0420", reason = "gtk3 via tauri/tao — no GTK4 path in Tauri v2" },
+
+  # audiopus_sys: unmaintained libopus bindings under the `opus` crate used
+  # for the Ogg-Opus mixdown. No maintained drop-in; the advisory is about
+  # maintenance and a CMake 4.0 build break, not a runtime defect.
+  { id = "RUSTSEC-2026-0150", reason = "audiopus_sys unmaintained; no maintained libopus binding" },
+
+  # paste / proc-macro-error / unic-*: unmaintained proc-macro and Unicode
+  # helpers pulled in transitively; no runtime code path of ours calls them
+  # directly and no upgrade exists.
+  { id = "RUSTSEC-2024-0436", reason = "paste unmaintained, transitive, compile-time only" },
+  { id = "RUSTSEC-2024-0370", reason = "proc-macro-error unmaintained, transitive, compile-time only" },
+  { id = "RUSTSEC-2025-0075", reason = "unic-char-range unmaintained, transitive" },
+  { id = "RUSTSEC-2025-0080", reason = "unic-common unmaintained, transitive" },
+  { id = "RUSTSEC-2025-0081", reason = "unic-char-property unmaintained, transitive" },
+  { id = "RUSTSEC-2025-0098", reason = "unic-ucd-version unmaintained, transitive" },
+  { id = "RUSTSEC-2025-0100", reason = "unic-ucd-ident unmaintained, transitive" },
+
+  # quick-xml <0.41 via plist via tauri-utils: build-time parsing of our own
+  # Info.plist. Bumping needs a Tauri release; no untrusted XML is parsed.
+  { id = "RUSTSEC-2026-0194", reason = "quick-xml via tauri-utils build path; parses our own plist" },
+  { id = "RUSTSEC-2026-0195", reason = "quick-xml via tauri-utils build path; parses our own plist" },
+
+  # tract-nnef <0.21.16 via deep_filter: the tract pin in crates/denoise is
+  # forced, and tract loads only the DFN3 model bundled in the binary.
+  { id = "RUSTSEC-2026-0217", reason = "tract pinned by deep_filter; loads only the bundled DFN3 model" },
+]

@@ -1,0 +1,223 @@
+// SPDX-License-Identifier: Elastic-2.0
+// Copyright (c) 2026 Apexis Solutions Inc. (dba Small Bricktory) — see LICENSE
+//! Shared Daisy Cloud gateway primitives: per-request Ed25519 signing + the
+//! six `X-Daisy-*` headers, used by every transport that routes to the
+//! gateway (the summary `Summarizer`, the `ChatCompleter`, and the `ask`/qa
+//! path).
+
+use crate::error::Result;
+
+pub const GATEWAY_BASE: &str = "https://daisy.smbr.app/api/gateway/v1";
+const GATEWAY_PATH: &str = "/api/gateway/v1/chat/completions";
+/// Seat-claim + pubkey-registration endpoint. Re-POSTing is idempotent: it
+/// re-claims the already-held seat and (re)writes the install pubkey.
+const ACTIVATE_URL: &str = "https://daisy.smbr.app/api/activate";
+
+/// Per-install credentials needed to sign one gateway request.
+#[derive(Clone)]
+pub struct GatewayCreds {
+    pub install_id: String,
+    pub license: String,
+    /// Ed25519 seed from the unlocked vault.
+    pub seed: [u8; 32],
+    /// `X-Daisy-Task`: summary | chapters | analysis | ask | polish.
+    pub task: String,
+}
+
+/// The fixed gateway endpoint.
+pub fn url() -> String {
+    format!("{GATEWAY_BASE}/chat/completions")
+}
+
+pub fn sha256_hex(bytes: &[u8]) -> String {
+    use sha2::{Digest, Sha256};
+    let mut h = Sha256::new();
+    h.update(bytes);
+    h.finalize().iter().map(|b| format!("{b:02x}")).collect()
+}
+
+/// The exact 5-line canonical string the gateway signs over (no trailing
+/// newline): METHOD, path, timestamp, nonce, sha256-hex of the body bytes.
+pub fn canonical_string(ts: &str, nonce: &str, body: &[u8]) -> String {
+    format!("POST\n{GATEWAY_PATH}\n{ts}\n{nonce}\n{}", sha256_hex(body))
+}
+
+/// Ed25519-sign `canon`; returns the base64 signature.
+pub fn sign(seed: &[u8; 32], canon: &str) -> String {
+    use base64::{engine::general_purpose::STANDARD as B64, Engine};
+    use ed25519_dalek::{Signer, SigningKey};
+    B64.encode(SigningKey::from_bytes(seed).sign(canon.as_bytes()).to_bytes())
+}
+
+/// Build a fully-signed POST to the gateway for `body_bytes`. A fresh
+/// timestamp + nonce is generated each call. The caller MUST send exactly
+/// `body_bytes` (it is what was hashed + signed).
+pub fn request(
+    client: &reqwest::blocking::Client,
+    creds: &GatewayCreds,
+    body_bytes: &[u8],
+) -> reqwest::blocking::RequestBuilder {
+    let ts = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0)
+        .to_string();
+    let nonce = uuid::Uuid::new_v4().to_string();
+    let canon = canonical_string(&ts, &nonce, body_bytes);
+    let sig = sign(&creds.seed, &canon);
+    client
+        .post(url())
+        .header("content-type", "application/json")
+        .header("X-Daisy-License", &creds.license)
+        .header("X-Daisy-Install", &creds.install_id)
+        .header("X-Daisy-Task", &creds.task)
+        .header("X-Daisy-Timestamp", ts)
+        .header("X-Daisy-Nonce", nonce)
+        .header("X-Daisy-Signature", sig)
+        .body(body_bytes.to_vec())
+}
+
+/// Async sibling of [`request`] for the streaming chat path: identical signing
+/// + six `X-Daisy-*` headers, on an async [`reqwest::Client`]. Same contract —
+/// the caller MUST send exactly `body_bytes` (it's what was hashed + signed).
+pub fn request_async(
+    client: &reqwest::Client,
+    creds: &GatewayCreds,
+    body_bytes: &[u8],
+) -> reqwest::RequestBuilder {
+    let ts = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0)
+        .to_string();
+    let nonce = uuid::Uuid::new_v4().to_string();
+    let canon = canonical_string(&ts, &nonce, body_bytes);
+    let sig = sign(&creds.seed, &canon);
+    client
+        .post(url())
+        .header("content-type", "application/json")
+        .header("X-Daisy-License", &creds.license)
+        .header("X-Daisy-Install", &creds.install_id)
+        .header("X-Daisy-Task", &creds.task)
+        .header("X-Daisy-Timestamp", ts)
+        .header("X-Daisy-Nonce", nonce)
+        .header("X-Daisy-Signature", sig)
+        .body(body_bytes.to_vec())
+}
+
+/// Base64 Ed25519 public key for this install, derived from the signing
+/// seed. Stored by `/api/activate` as `install_pubkey`.
+pub fn install_pubkey_b64(seed: &[u8; 32]) -> String {
+    use base64::{engine::general_purpose::STANDARD as B64, Engine};
+    use ed25519_dalek::SigningKey;
+    B64.encode(SigningKey::from_bytes(seed).verifying_key().to_bytes())
+}
+
+/// (Re)register this device's install pubkey by POSTing `/api/activate` with
+/// the same license key + install_id. The pubkey derives from the seed that
+/// signs gateway requests.
+///
+/// Returns `Ok(true)` only when the server confirms the seat (2xx). Any other
+/// outcome — `seat_limit` / `invalid_key` / `expired` / `revoked` / 5xx /
+/// network error, or a seed that cannot yield a pubkey — returns `Ok(false)`
+/// (or `Err`). Never POSTs without a real pubkey.
+pub fn register_install(client: &reqwest::blocking::Client, creds: &GatewayCreds) -> Result<bool> {
+    let body = serde_json::json!({
+        "key": creds.license,
+        "install_id": creds.install_id,
+        "install_pubkey": install_pubkey_b64(&creds.seed),
+    });
+    match client
+        .post(ACTIVATE_URL)
+        .header("content-type", "application/json")
+        .json(&body)
+        .send()
+    {
+        Ok(r) => Ok(r.status().is_success()),
+        Err(_) => Ok(false),
+    }
+}
+
+/// Async sibling of [`register_install`] for the streaming paths.
+pub async fn register_install_async(
+    client: &reqwest::Client,
+    creds: &GatewayCreds,
+) -> Result<bool> {
+    let body = serde_json::json!({
+        "key": creds.license,
+        "install_id": creds.install_id,
+        "install_pubkey": install_pubkey_b64(&creds.seed),
+    });
+    match client
+        .post(ACTIVATE_URL)
+        .header("content-type", "application/json")
+        .json(&body)
+        .send()
+        .await
+    {
+        Ok(r) => Ok(r.status().is_success()),
+        Err(_) => Ok(false),
+    }
+}
+
+/// True iff the gateway error is fixed by re-registering this install's
+/// pubkey: 403 `install_not_registered` (no key on file) or 401
+/// `bad_signature` (stale key on file).
+pub fn registration_heals(status: u16, raw: &str) -> bool {
+    let error = serde_json::from_str::<serde_json::Value>(raw)
+        .ok()
+        .as_ref()
+        .and_then(|v| v.get("error"))
+        .and_then(|e| e.as_str())
+        .map(String::from);
+    match error.as_deref() {
+        Some("install_not_registered") => status == 403,
+        Some("bad_signature") => status == 401,
+        _ => false,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use base64::{engine::general_purpose::STANDARD as B64, Engine};
+    use ed25519_dalek::{Signature, SigningKey, Verifier, VerifyingKey};
+
+    #[test]
+    fn sha256_hex_known_vector() {
+        assert_eq!(
+            sha256_hex(b""),
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        );
+    }
+
+    #[test]
+    fn canonical_string_shape() {
+        let body = br#"{"messages":[]}"#;
+        let canon = canonical_string("1780000000", "abc123", body);
+        assert_eq!(
+            canon,
+            format!(
+                "POST\n/api/gateway/v1/chat/completions\n1780000000\nabc123\n{}",
+                sha256_hex(body)
+            )
+        );
+    }
+
+    #[test]
+    fn signature_verifies_with_derived_pubkey() {
+        let seed = [7u8; 32];
+        let canon = canonical_string("1780000000", "n1", br#"{"x":1}"#);
+        let sig_b64 = sign(&seed, &canon);
+        let sig = Signature::from_slice(&B64.decode(&sig_b64).unwrap()).unwrap();
+        let vk: VerifyingKey = SigningKey::from_bytes(&seed).verifying_key();
+        assert!(vk.verify(canon.as_bytes(), &sig).is_ok());
+    }
+
+    #[test]
+    fn install_pubkey_matches_signing_key() {
+        let seed = [9u8; 32];
+        let want = B64.encode(SigningKey::from_bytes(&seed).verifying_key().to_bytes());
+        assert_eq!(install_pubkey_b64(&seed), want);
+    }
+}

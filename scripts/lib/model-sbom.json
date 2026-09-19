@@ -1,0 +1,60 @@
+[
+  {
+    "type": "machine-learning-model",
+    "name": "parakeet-tdt-0.6b-v2-int8",
+    "version": "parakeet-rs v0.1.0 export",
+    "description": "NVIDIA Parakeet TDT 0.6B v2, ONNX int8 export via jason-ni/parakeet-rs. On-device ASR on Windows and Linux.",
+    "supplier": { "name": "NVIDIA Corporation" },
+    "licenses": [{ "license": { "id": "CC-BY-4.0" } }],
+    "externalReferences": [
+      { "type": "website", "url": "https://huggingface.co/nvidia/parakeet-tdt-0.6b-v2" },
+      { "type": "distribution", "url": "https://github.com/jason-ni/parakeet-rs/releases/download/v0.1.0/parakeet-tdt-0.6b-v2-onnx.tar.gz" }
+    ]
+  },
+  {
+    "type": "machine-learning-model",
+    "name": "pyannote-speaker-diarization-community-1",
+    "version": "speakrs-models export",
+    "description": "pyannote community-1 segmentation + WeSpeaker embedding networks and PLDA/VBx parameters, exported to ONNX (all platforms) and CoreML (macOS) by avencera/speakrs-models. Speaker diarization.",
+    "supplier": { "name": "pyannote" },
+    "licenses": [{ "license": { "id": "CC-BY-4.0" } }],
+    "externalReferences": [
+      { "type": "website", "url": "https://huggingface.co/pyannote/speaker-diarization-community-1" },
+      { "type": "distribution", "url": "https://huggingface.co/avencera/speakrs-models" }
+    ]
+  },
+  {
+    "type": "machine-learning-model",
+    "name": "wespeaker-voxceleb-resnet34-LM",
+    "version": "hbredin ONNX copy",
+    "description": "WeSpeaker VoxCeleb ResNet34-LM speaker embedding. Voiceprint enrollment and matching.",
+    "supplier": { "name": "ChengDong Liang / WeSpeaker" },
+    "licenses": [{ "license": { "id": "Apache-2.0" } }],
+    "externalReferences": [
+      { "type": "website", "url": "https://huggingface.co/hbredin/wespeaker-voxceleb-resnet34-LM" }
+    ]
+  },
+  {
+    "type": "machine-learning-model",
+    "name": "silero-vad-v5",
+    "version": "v5",
+    "description": "Silero voice-activity detector. Faint-audio marker detection on Windows and Linux.",
+    "supplier": { "name": "Silero Team" },
+    "licenses": [{ "license": { "id": "MIT" } }],
+    "externalReferences": [
+      { "type": "website", "url": "https://github.com/snakers4/silero-vad" }
+    ]
+  },
+  {
+    "type": "machine-learning-model",
+    "name": "granite-embedding-97m-multilingual-r2",
+    "version": "r2, Daisy g8m16 ONNX export",
+    "description": "IBM Granite 97M multilingual text embedding. Semantic search and Q&A retrieval.",
+    "supplier": { "name": "IBM" },
+    "licenses": [{ "license": { "id": "Apache-2.0" } }],
+    "externalReferences": [
+      { "type": "website", "url": "https://huggingface.co/ibm-granite/granite-embedding-97m-multilingual-r2" },
+      { "type": "distribution", "url": "https://github.com/smallbricktory/daisy-local/releases/tag/embeddings-granite-g8m16-1" }
+    ]
+  }
+]

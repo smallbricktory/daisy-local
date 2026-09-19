@@ -1,0 +1,98 @@
+{
+  "_note": "Shared test vectors for docs/sync/protocol.md v1 (smbr-daisy-ios). Fixed inputs are SHA-256 of 'daisy-sync-vectors-v1:<label>'; every other value follows from them. Identical copies: smbr-daisy-app crates/tauri-app/tests/fixtures/sync-vectors-v1.json and smbr-daisy-ios ios/DaisyKit/Tests/DaisyKitTests/Fixtures/sync-vectors-v1.json. Regenerate with `cargo test -p tauri-app --test sync_vectors -- --ignored write_vectors`.",
+  "secret_b64": "jtjVdjm2hJCQo5l7P8Q46l/euJzsy+6mQ2yeCUepLwM=",
+  "desktop": {
+    "device_id": "f7c026bbc3b6dcf0b22d8755722436e1",
+    "name": "Studio Mac",
+    "ed25519_seed_b64": "lwgQad+4C9sf6Tb6PpgzwdwzOlt20kn3tJmYiMHXg4E=",
+    "ed25519_pub_b64": "MpHdBT0XrM1HGN8YRbrszhtn5FWyE74JaiK1raHWwBk=",
+    "x25519_secret_b64": "2ez6NoE3CifFlaD/lsN/0/Nw+7UTqAFXFYQb5Of888Y=",
+    "x25519_pub_b64": "62hyIMmsMmpJ3j3cnDNlfoG7XSmjk2HYmffaOm3kaw8=",
+    "tls_key_der_b64": "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgbeFf+llTFtPr/pUNC+IOlYIS5q77X5EuA3Wz45FsX26hRANCAATYR2WLmg1/Wrw2ACmPHlj6OMr7jLbuSlaOj5g/crqZEyt7jj+2CldWv7Z+uULFB0QtxPOISfZj1FdusbeNron1",
+    "tls_cert_der_b64": "MIIBezCCASGgAwIBAgIUAPH8WAdM4MJpLaV2gKwRsAz87P4wCgYIKoZIzj0EAwIwITEfMB0GA1UEAwwWcmNnZW4gc2VsZiBzaWduZWQgY2VydDAgFw03NTAxMDEwMDAwMDBaGA8yMDk5MTIzMTAwMDAwMFowITEfMB0GA1UEAwwWcmNnZW4gc2VsZiBzaWduZWQgY2VydDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABNhHZYuaDX9avDYAKY8eWPo4yvuMtu5KVo6PmD9yupkTK3uOP7YKV1a/tn65QsUHRC3E84hJ9mPUV26xt42uifWjNTAzMDEGA1UdEQQqMCiCJmRhaXN5LWY3YzAyNmJiYzNiNmRjZjBiMjJkODc1NTcyMjQzNmUxMAoGCCqGSM49BAMCA0gAMEUCIQCGnzMMKdnXNXk7b6ji8jGWBKjcSInEx8DijrceQYSklAIgLPKoLlG5GXv/4Af4o7Wv0tw9y4tH2tiAdI0AMg9WXMI=",
+    "tls_spki_sha256_b64": "gCF6GyphDjutPlBVUbamvJXn6kelmr0JtwBjbkj23Ok="
+  },
+  "phone": {
+    "device_id": "4a68f72f5a22110b2bfbe71b6588833c",
+    "name": "Rowan's phone",
+    "vault_key_b64": "ABo7gTt070OPxF+JWMSiaYmPo3Nwbt45g9Ff8Shogjw=",
+    "ed25519_seed_b64": "Jioa6BnQiO9g/+jldq62JEV4py032iTxJIAl4Me3RUA=",
+    "ed25519_pub_b64": "beU+i07KnQzFZ9xpZZ6lRr7V7+tWFN85x7r/BpOVZhY=",
+    "tls_key_der_b64": "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgGZcgQjVrSITKOI6TE5gT5oULv6y8tW4XbdN464zwku2hRANCAASmLYFuR/oF5mSRqUuCc+Yx8jv0sVaoiCS6VGmIpyqpV1Y65KzTSkZNHBd6xJc9tejZVXaulISzAC0Y1SdNCU9w",
+    "tls_cert_der_b64": "MIIBezCCASGgAwIBAgIUa9+lLjEfVZMauqndhtT1w2hh6L4wCgYIKoZIzj0EAwIwITEfMB0GA1UEAwwWcmNnZW4gc2VsZiBzaWduZWQgY2VydDAgFw03NTAxMDEwMDAwMDBaGA8yMDk5MTIzMTAwMDAwMFowITEfMB0GA1UEAwwWcmNnZW4gc2VsZiBzaWduZWQgY2VydDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABKYtgW5H+gXmZJGpS4Jz5jHyO/SxVqiIJLpUaYinKqlXVjrkrNNKRk0cF3rElz216NlVdq6UhLMALRjVJ00JT3CjNTAzMDEGA1UdEQQqMCiCJmRhaXN5LTRhNjhmNzJmNWEyMjExMGIyYmZiZTcxYjY1ODg4MzNjMAoGCCqGSM49BAMCA0gAMEUCIQCvM6HPmIsmPH/NVp/a6T8+KHdl80NXJ8ro2A8oe2w7eAIgTbrU27vMX0RXX0kS8EPeZF87ermDv4yM3SDKR09hR6s=",
+    "tls_spki_sha256_b64": "nQ60uz24ezRm4G0Vj06PAewhipON9wfpMiyNSdJzmhM="
+  },
+  "derived": {
+    "pair_mac_key_b64": "sPVi7gNMpEQbO5v91rtH5N7THN3/imHeV6inSfaWpiI=",
+    "pairing_key_b64": "viQQXAiXF20waZV8AO/Ecvvlzr/wJOV4mBYZAK7xjMw=",
+    "service_uuid": "D4A87EF9-7B7A-4AD3-806E-AF909C927058",
+    "wake_uuid": "0A23320A-898F-4334-8D10-93B7F079AEE2",
+    "address_uuid": "C5057A9F-691F-4D19-8510-395B1430A39E"
+  },
+  "pairing_code": {
+    "host": "studio-mac.local",
+    "port": 7845,
+    "json": "{\"v\":1,\"device_id\":\"f7c026bbc3b6dcf0b22d8755722436e1\",\"name\":\"Studio Mac\",\"ed25519_pub_b64\":\"MpHdBT0XrM1HGN8YRbrszhtn5FWyE74JaiK1raHWwBk=\",\"tls_spki_sha256_b64\":\"gCF6GyphDjutPlBVUbamvJXn6kelmr0JtwBjbkj23Ok=\",\"secret_b64\":\"jtjVdjm2hJCQo5l7P8Q46l/euJzsy+6mQ2yeCUepLwM=\",\"host\":\"studio-mac.local\",\"port\":7845}",
+    "text": "daisy-pair:1:eyJ2IjoxLCJkZXZpY2VfaWQiOiJmN2MwMjZiYmMzYjZkY2YwYjIyZDg3NTU3MjI0MzZlMSIsIm5hbWUiOiJTdHVkaW8gTWFjIiwiZWQyNTUxOV9wdWJfYjY0IjoiTXBIZEJUMFhyTTFIR044WVJicnN6aHRuNUZXeUU3NEphaUsxcmFIV3dCaz0iLCJ0bHNfc3BraV9zaGEyNTZfYjY0IjoiZ0NGNkd5cGhEanV0UGxCVlViYW12SlhuNmtlbG1yMEp0d0JqYmtqMjNPaz0iLCJzZWNyZXRfYjY0IjoianRqVmRqbTJoSkNRbzVsN1A4UTQ2bC9ldUp6c3krNm1RMnllQ1VlcEx3TT0iLCJob3N0Ijoic3R1ZGlvLW1hYy5sb2NhbCIsInBvcnQiOjc4NDV9"
+  },
+  "pair_request": {
+    "body": "{\"v\":1,\"device_id\":\"4a68f72f5a22110b2bfbe71b6588833c\",\"name\":\"Rowan's phone\",\"platform\":\"ios\",\"ed25519_pub_b64\":\"beU+i07KnQzFZ9xpZZ6lRr7V7+tWFN85x7r/BpOVZhY=\",\"tls_cert_der_b64\":\"MIIBezCCASGgAwIBAgIUa9+lLjEfVZMauqndhtT1w2hh6L4wCgYIKoZIzj0EAwIwITEfMB0GA1UEAwwWcmNnZW4gc2VsZiBzaWduZWQgY2VydDAgFw03NTAxMDEwMDAwMDBaGA8yMDk5MTIzMTAwMDAwMFowITEfMB0GA1UEAwwWcmNnZW4gc2VsZiBzaWduZWQgY2VydDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABKYtgW5H+gXmZJGpS4Jz5jHyO/SxVqiIJLpUaYinKqlXVjrkrNNKRk0cF3rElz216NlVdq6UhLMALRjVJ00JT3CjNTAzMDEGA1UdEQQqMCiCJmRhaXN5LTRhNjhmNzJmNWEyMjExMGIyYmZiZTcxYjY1ODg4MzNjMAoGCCqGSM49BAMCA0gAMEUCIQCvM6HPmIsmPH/NVp/a6T8+KHdl80NXJ8ro2A8oe2w7eAIgTbrU27vMX0RXX0kS8EPeZF87ermDv4yM3SDKR09hR6s=\"}",
+    "mac_b64": "IO06J9d59QZQt7UGG+f5DqV2gOfC2JCsE0attmTTuaw="
+  },
+  "pair_reply": {
+    "body": "{\"v\":1,\"device_id\":\"f7c026bbc3b6dcf0b22d8755722436e1\",\"name\":\"Studio Mac\",\"x25519_pub_b64\":\"62hyIMmsMmpJ3j3cnDNlfoG7XSmjk2HYmffaOm3kaw8=\",\"phone_ed25519_pub_b64\":\"beU+i07KnQzFZ9xpZZ6lRr7V7+tWFN85x7r/BpOVZhY=\",\"port\":7845}",
+    "signature_b64": "ZuG9Eatcj31+++j/XLcFudxotV2Ga8FrMXYqzuYeO3Ghm3GQfAwstEt5txLgXu/QYmxQN1FQPOJIaYCSM6wPCA=="
+  },
+  "signed_requests": [
+    {
+      "method": "POST",
+      "path": "/hello",
+      "nonce_b64": "erfr8zo0RGCGKLfkie7sCg==",
+      "body": "{\"v\":1,\"device_id\":\"4a68f72f5a22110b2bfbe71b6588833c\",\"sessions\":[{\"artifacts\":[\"sha256:2e2cbe12ad6b2aaf5003b32705b230b93cd01352871a1d35874ecdfb7deb2806\"],\"id\":\"daisy-1787249858\",\"inputs\":{\"manifest\":\"sha256:709371794fa9e887f63e1b589a5ceb3a1f1dae4a6308746fc57656702c4545d6\",\"transcript\":\"sha256:4a11a0b92a35b5067894253ec95e4fb745a8aa1b7c9c50cdfc492fba6d52960c\"}}],\"tombstones\":[]}",
+      "body_sha256": "sha256:59bb9f1324b5fd07c7e44d8d565524fe4b7711800c5fce2d1ef90ee58c0d3734",
+      "signing_string": "POST\n/hello\n4a68f72f5a22110b2bfbe71b6588833c\nerfr8zo0RGCGKLfkie7sCg==\nsha256:59bb9f1324b5fd07c7e44d8d565524fe4b7711800c5fce2d1ef90ee58c0d3734",
+      "signature_b64": "CyQildzlHI0t2M7gX2pAERFSDznT5FBcA3pUDj9kSnBt2dl87PusJ/psQXhETXl5bvxa/4N1FB+a6HIipqXyBA=="
+    },
+    {
+      "method": "GET",
+      "path": "/artifact/sha256:2e2cbe12ad6b2aaf5003b32705b230b93cd01352871a1d35874ecdfb7deb2806",
+      "nonce_b64": "oCmEaL/PwOcIb0c2da5OiQ==",
+      "body": "",
+      "body_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "signing_string": "GET\n/artifact/sha256:2e2cbe12ad6b2aaf5003b32705b230b93cd01352871a1d35874ecdfb7deb2806\n4a68f72f5a22110b2bfbe71b6588833c\noCmEaL/PwOcIb0c2da5OiQ==\nsha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "signature_b64": "jjXsDCgmGk+4CUpYm7WIoTNaQZYIYmjd9zvh/cQtpOTftPwOx0A6Ro2UdqpDaohULUukAF1vDqsqfTeAW2SOBA=="
+    }
+  ],
+  "signed_reply": {
+    "status": 200,
+    "path": "/hello",
+    "nonce_b64": "erfr8zo0RGCGKLfkie7sCg==",
+    "body": "{\"v\":1,\"wants\":[{\"file\":\"manifest.json\",\"session\":\"daisy-1787249858\"}],\"offers\":[],\"tombstones\":[]}",
+    "signing_string": "200\n/hello\nerfr8zo0RGCGKLfkie7sCg==\nsha256:b24d3d417c9c11ee1eb140205b7fac0a493991278f321d508a3d5f4d479c8068",
+    "signature_b64": "eUFeuv32WhX61RGugUCuqvrX6nQK72VEJ2TgTGQdGr6ZFdL61rAtXgYzE9QBb1vtk7qQVqeJCvK+MIrZddKwCw=="
+  },
+  "tombstone": {
+    "session": "daisy-1787249858",
+    "seq": 3,
+    "origin": "4a68f72f5a22110b2bfbe71b6588833c",
+    "signing_string": "tombstone\ndaisy-1787249858\n3",
+    "sig_b64": "dqGYVyv1D38xHcftIrUeK2EbpLQRhx1GnRbVbyIyGWWoJrgc2TlCnUuS9aanumHa2M38809FnTPPOI0Avc+kCw==",
+    "body": "{\"v\":1,\"session\":\"daisy-1787249858\",\"seq\":3,\"origin\":\"4a68f72f5a22110b2bfbe71b6588833c\",\"sig_b64\":\"dqGYVyv1D38xHcftIrUeK2EbpLQRhx1GnRbVbyIyGWWoJrgc2TlCnUuS9aanumHa2M38809FnTPPOI0Avc+kCw==\"}"
+  },
+  "wake_payload": {
+    "plaintext": "{\"t\":\"wake\",\"n\":\"91FCa3rX59W1xJ0Xf6SmXg==\"}",
+    "nonce_b64": "ByhEmRkjUH88cmJw",
+    "wire_b64": "ByhEmRkjUH88cmJwgC+64AhcKP/r5l8ypXEINsqlVVeVBU8V3LGOY1DLTNWXsnO1+bdn5+5O85fIWl2Pif4mfQWwxrYD7HU="
+  },
+  "address_payload": {
+    "plaintext": "{\"t\":\"addr\",\"host\":\"192.168.1.20\",\"port\":7845}",
+    "nonce_b64": "mHRHA/5HasVHd1V2",
+    "wire_b64": "mHRHA/5HasVHd1V2w7T2QOQsvMlA/feMXsH4tJw4PuKD9KHzwY9X3Bpiz59iaZwOq2guFq9cB2Ikn+oYO8r8MQwoDQDUwXM4z3k="
+  },
+  "envelope_v2": {
+    "plaintext": "{\"schema_version\":4,\"language\":\"fr-CA\"}",
+    "data_key_b64": "TL6maslypOix/jd+ITJ8KbEx0y7xHYHPBUejOGxZK1o=",
+    "ephemeral_secret_b64": "+U1U0Dd9qkI2hqk3gaIdxDHovgN1suBbSLPDj8jQ4Dk=",
+    "envelope": "{\"schema_version\":2,\"cipher\":\"aes-256-gcm\",\"nonce_b64\":\"qPR0mwnua8bMi3v6\",\"ciphertext_b64\":\"YR6QG9Sy8LSLz20IJbzq/tws+eIsFcxQ7SsGbTc9UaZOC5527X/1hheaiY16kCrxy6Vq90A6Hw==\",\"recipients\":[{\"id\":\"4a68f72f5a22110b2bfbe71b6588833c\",\"kind\":\"device_key\",\"nonce_b64\":\"ZHpZXaEWSgMQBZHp\",\"wrapped_b64\":\"Ra1sPfAhh+kCuFFcXpOqDddJBR4xR28BcBfRxI4L9q4SLlZf4vHm/gaqitvV+j4t\"},{\"ephemeral_pub_b64\":\"NIng/65S2EBIdh7Qx4C6aniwQdNdV2u4t8thWOfmY3g=\",\"id\":\"f7c026bbc3b6dcf0b22d8755722436e1\",\"kind\":\"x25519\",\"nonce_b64\":\"jcjR+PPUgrExEeQ2\",\"wrapped_b64\":\"wcp+5EfcfkjnTDbOrI6/6FIlKdbjSh4uQ6/qJ1FGafti6xHfE15+j6Mx79z6+Z2w\"}]}"
+  }
+}
