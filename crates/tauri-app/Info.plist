@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!--
+    Usage strings for the macOS permission prompts Daisy triggers: microphone,
+    system audio capture, Bluetooth (wakes a paired phone) and local network
+    (pairing and sync, advertised over Bonjour).
+  -->
+  <key>NSMicrophoneUsageDescription</key>
+  <string>Daisy records your microphone so it can transcribe and summarize your meetings. Audio stays on your device.</string>
+  <key>NSAudioCaptureUsageDescription</key>
+  <string>Daisy records this computer's audio (the people you're meeting with) so it can transcribe and summarize your meetings. Audio stays on your device.</string>
+  <key>NSBluetoothAlwaysUsageDescription</key>
+  <string>Daisy uses Bluetooth to wake your paired phone when a recording is ready for it. Your meetings stay on your devices.</string>
+  <key>NSLocalNetworkUsageDescription</key>
+  <string>Daisy uses your local network to find and sync with your paired phone. Your meetings stay on your devices.</string>
+  <key>NSBonjourServices</key>
+  <array>
+    <string>_daisy-pair._tcp</string>
+  </array>
+</dict>
+</plist>

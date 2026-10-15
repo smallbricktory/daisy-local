@@ -1,0 +1,11 @@
+allowBuilds:
+  edgedriver: false
+  esbuild: true
+  geckodriver: false
+ignoredBuiltDependencies:
+  - edgedriver
+  - geckodriver
+onlyBuiltDependencies:
+  - esbuild
+patchedDependencies:
+  '@wdio/utils@9.31.2': patches/@wdio__utils@9.31.2.patch

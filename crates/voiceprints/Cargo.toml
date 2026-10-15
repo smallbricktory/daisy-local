@@ -1,0 +1,48 @@
+[package]
+name = "voiceprints"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+[dev-dependencies]
+serde_json.workspace = true
+
+# Diagnostic examples:
+#   cargo run --release -p voiceprints --example denoise_diar_ab -- <session_dir>
+[[example]]
+name = "denoise_diar_ab"
+path = "../../diagnostics/speakers/denoise_diar_ab.rs"
+
+[[example]]
+name = "diag_diarize"
+path = "../../diagnostics/speakers/diag_diarize.rs"
+
+[[example]]
+name = "probe_vp"
+path = "../../diagnostics/speakers/probe_vp.rs"
+
+[[example]]
+name = "probe_diarize_mic"
+path = "../../diagnostics/speakers/probe_diarize_mic.rs"
+
+[[example]]
+name = "diag_d"
+path = "../../diagnostics/speakers/diag_d.rs"
+
+[dependencies]
+anyhow.workspace = true
+thiserror.workspace = true
+log.workspace = true
+ort.workspace = true
+# Finalize thread budget and background priority; WAV loading in the
+# diagnostics examples.
+transcript = { path = "../transcript" }
+syncsafe = { path = "../syncsafe" }
+ndarray.workspace = true
+hound.workspace = true
+rustfft.workspace = true
+num-complex.workspace = true

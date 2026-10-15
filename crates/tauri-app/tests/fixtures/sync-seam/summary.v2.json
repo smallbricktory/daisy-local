@@ -1,0 +1,22 @@
+{
+  "v": 2,
+  "session_id": "daisy-1700000000",
+  "generated_at_unix_seconds": 1700000600,
+  "produced_by": { "device": "d-0000000000000000", "provider": "lmstudio", "model": "gemma-4-e2b" },
+  "tldr": "The team agreed to ship the tide-chart widget behind a flag and to move the Friday review to Thursday.",
+  "decisions": ["Ship behind a flag", "Review moves to Thursday"],
+  "action_items": [
+    { "task": "Merge the parser branch", "owner": "Sam", "due": "Thursday" },
+    { "task": "Write the release note", "owner": "Priya" }
+  ],
+  "open_questions": ["Who owns the on-call rota next month?"],
+  "key_topics": ["tide-chart widget", "release cadence"],
+  "chapters": [
+    { "title": "Widget scope", "start_ms": 0, "summary": "What the tide-chart widget shows and who asked for it." },
+    { "title": "Release cadence", "start_ms": 754000 }
+  ],
+  "markdown": "# Summary\n\nThe team agreed to ship the tide-chart widget behind a flag.\n",
+  "user_edited": false,
+  "skipped": [{ "start_ms": 1800000, "end_ms": 1860000 }],
+  "turn_count": 12
+}

@@ -1,0 +1,43 @@
+# cargo-deny advisory policy. CI runs `cargo deny check advisories`.
+#
+# Vulnerabilities and unsound advisories fail the build. Each exception below is a
+# transitive dependency, with its reason.
+
+[advisories]
+version = 2
+yanked = "deny"
+ignore = [
+  # GTK3 bindings, unmaintained upstream (Tauri v2's Linux webview stack).
+  { id = "RUSTSEC-2024-0411", reason = "gtk3 via tauri/tao — no GTK4 path in Tauri v2" },
+  { id = "RUSTSEC-2024-0412", reason = "gtk3 via tauri/tao — no GTK4 path in Tauri v2" },
+  { id = "RUSTSEC-2024-0413", reason = "gtk3 via tauri/tao — no GTK4 path in Tauri v2" },
+  { id = "RUSTSEC-2024-0414", reason = "gtk3 via tauri/tao — no GTK4 path in Tauri v2" },
+  { id = "RUSTSEC-2024-0415", reason = "gtk3 via tauri/tao — no GTK4 path in Tauri v2" },
+  { id = "RUSTSEC-2024-0416", reason = "gtk3 via tauri/tao — no GTK4 path in Tauri v2" },
+  { id = "RUSTSEC-2024-0417", reason = "gtk3 via tauri/tao — no GTK4 path in Tauri v2" },
+  { id = "RUSTSEC-2024-0418", reason = "gtk3 via tauri/tao — no GTK4 path in Tauri v2" },
+  { id = "RUSTSEC-2024-0419", reason = "gtk3 via tauri/tao — no GTK4 path in Tauri v2" },
+  { id = "RUSTSEC-2024-0420", reason = "gtk3 via tauri/tao — no GTK4 path in Tauri v2" },
+
+  # audiopus_sys: libopus bindings under the `opus` crate (Ogg-Opus mixdown).
+  { id = "RUSTSEC-2026-0150", reason = "audiopus_sys unmaintained; no maintained libopus binding" },
+
+  # paste / proc-macro-error / unic-*: proc-macro and Unicode helpers pulled in transitively.
+  { id = "RUSTSEC-2024-0436", reason = "paste unmaintained, transitive, compile-time only" },
+  { id = "RUSTSEC-2024-0370", reason = "proc-macro-error unmaintained, transitive, compile-time only" },
+  { id = "RUSTSEC-2025-0075", reason = "unic-char-range unmaintained, transitive" },
+  { id = "RUSTSEC-2025-0080", reason = "unic-common unmaintained, transitive" },
+  { id = "RUSTSEC-2025-0081", reason = "unic-char-property unmaintained, transitive" },
+  { id = "RUSTSEC-2025-0098", reason = "unic-ucd-version unmaintained, transitive" },
+  { id = "RUSTSEC-2025-0100", reason = "unic-ucd-ident unmaintained, transitive" },
+
+  # quick-xml <0.41 via plist via tauri-utils: build-time parsing of Info.plist.
+  { id = "RUSTSEC-2026-0194", reason = "quick-xml via tauri-utils build path; parses our own plist" },
+  { id = "RUSTSEC-2026-0195", reason = "quick-xml via tauri-utils build path; parses our own plist" },
+
+  # tract-nnef <0.21.16 via deep_filter (tract pin in crates/denoise).
+  { id = "RUSTSEC-2026-0217", reason = "tract pinned by deep_filter; loads only the bundled DFN3 model" },
+
+  # anymap2 via liquid-core via liquid, a build-dependency of tract-linalg 0.21.5.
+  { id = "RUSTSEC-2026-0319", reason = "anymap2 unmaintained; build-script-only via tract-linalg's liquid" },
+]

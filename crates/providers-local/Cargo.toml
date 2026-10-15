@@ -1,0 +1,78 @@
+[package]
+name = "providers-local"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[[example]]
+name = "bench"
+path = "../../diagnostics/asr/bench.rs"
+
+[[example]]
+name = "whisper_text"
+path = "../../diagnostics/asr/whisper_text.rs"
+
+[[example]]
+name = "whisper_bench"
+path = "../../diagnostics/asr/whisper_bench.rs"
+
+[[example]]
+name = "live_replay"
+path = "../../diagnostics/asr/live_replay.rs"
+
+[[example]]
+name = "nemotron_decode"
+path = "../../diagnostics/asr/nemotron_decode.rs"
+
+[[example]]
+name = "nemotron_soak"
+path = "../../diagnostics/asr/nemotron_soak.rs"
+
+[[example]]
+name = "nemotron3_diar_bench"
+path = "../../diagnostics/speakers/nemotron3_diar_bench.rs"
+
+[[example]]
+name = "live_names_room_bench"
+path = "../../diagnostics/speakers/live_names_room_bench.rs"
+
+[dependencies]
+providers-http = { path = "../providers-http" }   # for the Transcriber trait
+providers-realtime = { path = "../providers-realtime" }  # RealtimeTranscriber trait (live streaming)
+transcript = { path = "../transcript" }
+whisper-rs = { workspace = true }
+tokio = { workspace = true }
+async-trait = { workspace = true }
+log = { workspace = true }
+anyhow = { workspace = true }
+reqwest = { workspace = true }                     # for the model-download helper (blocking)
+sha2 = { workspace = true }
+syncsafe = { path = "../syncsafe" }                # model renames wait out Windows file locks
+sysinfo = { version = "0.33", default-features = false, features = ["system"] }  # free memory sizes the batch decode pool
+ort = { workspace = true }                         # nemotron ONNX pipeline
+ndarray = { workspace = true }
+realfft = { workspace = true }                     # nemotron mel front end
+thiserror = { workspace = true }
+serde = { workspace = true }                       # whisper tunables ride the settings file; registry rows serialize
+
+# Whisper GPU/BLAS backends, per platform. Build-time requirements
+# (scripts/setup-dev.sh installs them on Linux):
+#   - macOS: Metal backend; needs only the Xcode toolchain.
+#   - Linux: Vulkan (GPU offload, CPU fallback at runtime) + OpenBLAS (fast
+#     CPU path). Needs glslc + libvulkan-dev + libopenblas-dev; whisper-rs-sys
+#     wants explicit BLAS header paths (BLAS_INCLUDE_DIRS, set in
+#     .cargo/config.toml — it doesn't probe pkg-config).
+#   - Windows: Vulkan. Needs the Vulkan SDK (VULKAN_SDK + glslc on PATH).
+[target.'cfg(target_os = "macos")'.dependencies]
+whisper-rs = { workspace = true, features = ["metal"] }
+[target.'cfg(target_os = "linux")'.dependencies]
+whisper-rs = { workspace = true, features = ["openblas", "vulkan"] }
+[target.'cfg(windows)'.dependencies]
+whisper-rs = { workspace = true, features = ["vulkan"] }
+
+[dev-dependencies]
+tempfile.workspace = true
+hound.workspace = true
+serde_json.workspace = true                        # nemotron3_diar_bench result file
+daisy-llm-protocol = { path = "../daisy-llm-protocol" }  # benches opt out of Windows EcoQoS as the app does

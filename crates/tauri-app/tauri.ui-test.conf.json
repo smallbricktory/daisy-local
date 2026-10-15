@@ -1,0 +1,8 @@
+{
+  "build": {
+    "frontendDist": "../../apps/frontend/dist-ui-test"
+  },
+  "app": {
+    "withGlobalTauri": true
+  }
+}

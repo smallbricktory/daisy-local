@@ -1,0 +1,12 @@
+{
+  "schema_version": 2,
+  "session_id": "daisy-1700000000",
+  "model_id": "granite-embedding-97m-multilingual-r2",
+  "generated_at_unix_seconds": 1700000700,
+  "transcript_hash": "fnv64:fedcba9876543210",
+  "chunks": [
+    { "text": "# daisy-1700000000", "start_ms": null },
+    { "text": "[00:00:00] Sam: Let's start with the widget.", "start_ms": 0 },
+    { "text": "[00:12:34] Priya: The review moves to Thursday.", "start_ms": 754000 }
+  ]
+}

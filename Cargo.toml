@@ -1,0 +1,118 @@
+[workspace]
+members = ["crates/*"]
+# Vendored crates build as path dependencies and are excluded from the workspace.
+exclude = ["vendor/webrtc-audio-processing-sys"]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+rust-version = "1.88"
+license = "Elastic-2.0"
+
+[workspace.dependencies]
+anyhow = "1"
+thiserror = "2"
+clap = { version = "4", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+hound = "3.5"
+# Ogg-Opus mixdown codec.
+# `opus` = MIT/Apache-2.0 bindings to libopus (BSD-3-Clause). `ogg` = BSD-3-Clause muxer.
+opus = "0.3"
+ogg = "0.9"
+# GPU/BLAS acceleration is per-platform: see the target-specific whisper-rs entries
+# in crates/providers-local/Cargo.toml (metal on macOS, vulkan+openblas on
+# Linux, vulkan on Windows).
+# `log_backend` routes whisper.cpp + ggml log output into the Rust `log` crate.
+whisper-rs = { version = "0.16", features = ["log_backend"] }
+pipewire = "0.10"
+log = "0.4"
+# env_logger serves daisy-cli and test fixtures; daisy-app uses fern (below).
+env_logger = "0.11"
+# fern: log dispatcher for daisy-app (console = WARN+, file = INFO+ / DEBUG+ when
+# debug_logging is set).
+fern = { version = "0.7", features = ["date-based"] }
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+# ONNX Runtime for voiceprints (WeSpeaker) and embeddings (Q&A).
+# `download-binaries` fetches a prebuilt libonnxruntime at build time and
+# places it next to the binary (Linux: target/<profile>/libonnxruntime.so —
+# repack-appimage.sh bundles it; Windows: build-release.ps1 copies the DLL).
+# `ort` is the workspace's sole ORT provider.
+ort = { version = "=2.0.0-rc.13", default-features = false, features = ["std", "ndarray", "download-binaries", "api-24", "tls-rustls"] }
+ndarray = "0.17"
+realfft = "3"
+# WebRTC AEC3 (audio processing module), the software echo canceller. `bundled`
+# builds the C++ statically via meson + ninja; the sys crate is vendored, see
+# [patch.crates-io].
+webrtc-audio-processing = { version = "=2.1.0", features = ["bundled"] }
+# DeepFilterNet3 noise suppression (finalize-only mic denoise → opus + diarize).
+# Git-pinned. The tract feature is pure-Rust ONNX inference. default-model-LL
+# embeds the DFN3 low-latency model.
+deep_filter = { git = "https://github.com/Rikorose/DeepFilterNet", rev = "d375b2d8309e0935d165700c91da9de862a99c31", default-features = false, features = ["tract", "default-model-ll", "transforms"] }
+# HuggingFace tokenizers (Rust impl), needed by the embedding model.
+# The `onig` feature selects the regex backend.
+tokenizers = { version = "0.21", default-features = false, features = ["onig"] }
+rustfft = "6"
+num-complex = "0.4"
+crossbeam-channel = "0.5"
+tempfile = "3"
+ctrlc = { version = "3", features = ["termination"] }
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "native-tls", "stream"] }
+mockito = "1"
+directories = "5"
+# tray-icon: system tray.
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-build = { version = "2" }
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros", "sync", "time", "net"] }
+argon2 = "0.5"
+aes-gcm = "0.10"
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+x25519-dalek = { version = "2", features = ["static_secrets"] }
+rcgen = "0.13"
+hkdf = "0.12"
+hmac = "0.12"
+subtle = "2"
+if-addrs = "0.13"
+mdns-sd = { version = "0.21", default-features = false, features = ["logging"] }
+sha2 = "0.10"
+rand = "0.9"
+base64 = "0.22"
+# Loopback MCP server (crates/tauri-app/src/mcp/) — HTTP layer only.
+axum = "0.8"
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12", "logging"] }
+tokio-rustls = { version = "0.26", default-features = false, features = ["ring", "tls12", "logging"] }
+hyper = { version = "1", features = ["http1", "server", "client"] }
+http-body-util = "0.1"
+hyper-util = { version = "0.1", features = ["server-auto", "tokio", "service"] }
+zeroize = { version = "1", features = ["derive"] }
+futures-util = "0.3"
+async-trait = "0.1"
+tauri-plugin-dialog = "2"
+tauri-plugin-global-shortcut = "2.3"
+zxcvbn = "3"
+walkdir = "2"
+uuid = { version = "1", features = ["v4", "serde"] }
+rayon = "1"
+# Import decode for user-supplied audio (mp3/m4a-aac/flac/wav/ogg). MPL-2.0.
+# Decode-only.
+symphonia = { version = "0.5", default-features = false, features = ["aac", "isomp4", "mp3", "flac", "ogg", "vorbis", "wav", "pcm", "alac"] }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true
+
+# Vault KDF (Argon2id, 64 MiB × 3) runs optimized in dev and test builds.
+[profile.dev.package.argon2]
+opt-level = 3
+[profile.dev.package.blake2]
+opt-level = 3
+# Voiceprint feature extraction likewise.
+[profile.dev.package.voiceprints]
+opt-level = 3
+
+[patch.crates-io]
+# Vendored webrtc-audio-processing-sys 2.1.0 with changes to the bundled meson
+# build for MSVC. The abseil source tarball is pre-seeded in
+# webrtc-audio-processing/subprojects/packagecache/ (SHA-pinned by the .wrap).
+webrtc-audio-processing-sys = { path = "vendor/webrtc-audio-processing-sys" }

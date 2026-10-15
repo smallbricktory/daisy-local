@@ -1,0 +1,2500 @@
+/* ===== Semantic roles =====
+   Each token names a role. Light is the default; [data-theme="dark"] flips
+   the same roles. One accent (gold), one signal (record red), one alert
+   (danger). */
+:root {
+  /* Native widget chrome (scrollbars, <audio>, form controls) follows the theme. */
+  color-scheme: light;
+
+  --bg:          #F4EFE6;   /* page */
+  --surface:     #FAF6EE;   /* cards, panels, rails */
+  --raised:      #FFFFFF;   /* inputs, controls, your own speech */
+  --line:        #DBD2C0;   /* hairlines, borders */
+  --line-soft:   #EAE3D5;   /* ghost rules, empty states */
+  --switch-off:  var(--line);   /* an off switch's track */
+  --text:        #1A1015;   /* headings + running text */
+  --text-2:      #46433B;   /* secondary running text, help copy */
+  --text-dim:    #6C6960;   /* eyebrows, meta, timestamps */
+  --gold:        #F2A900;   /* the one accent — fills take --on-gold */
+  --gold-hover:  #FFC13B;   /* gold fills brighten, never darken */
+  --gold-text:   #8A5F00;   /* gold as text */
+  --gold-tint:   rgba(242, 169, 0, 0.15);
+  --on-gold:     #1A1015;   /* the gold rule: ink on gold, both themes */
+  --record:      #D7263D;   /* recording — the one unmistakable signal */
+  --record-fill: #D7263D;   /* fills under --on-record; --record is the signal */
+  --record-hover:#B81E33;   /* hover shade */
+  --record-text: #B81E33;   /* record as text */
+  --on-record:   #FFFFFF;
+  --danger:      #B23A2A;
+  --danger-hover:#8F2F22;  /* the danger fill deepens on hover */
+  --success:     #146C2E;   /* also used as text */
+
+  /* Elevation: page (--bg), surface (--surface), raised (--raised) and overlay
+     (--overlay). Light separates with shadow, dark with lightness. */
+  --overlay:     #FFFFFF;   /* menus, modals, toasts, popovers */
+  --shadow-raised:
+    0 1px 0 color-mix(in srgb, var(--text) 4%, transparent),
+    0 12px 28px -22px color-mix(in srgb, var(--text) 18%, transparent);
+  --shadow-overlay:
+    0 1px 0 color-mix(in srgb, var(--text) 5%, transparent),
+    0 24px 48px -24px color-mix(in srgb, var(--text) 28%, transparent);
+  /* Selected-row fill, painted over --surface. */
+  --gold-selected: color-mix(in srgb, var(--gold) 12%, var(--surface));
+
+  /* Material. The rail, page-header band, toast stack and menus let the page
+     tint through; content stays opaque. Increase Contrast, reduced transparency
+     and data-reduce-transparency on <html> turn it off through these tokens. */
+  --glass-band:    color-mix(in srgb, var(--bg) 76%, transparent);
+  --glass-surface: color-mix(in srgb, var(--surface) 76%, transparent);
+  --glass-overlay: color-mix(in srgb, var(--overlay) 82%, transparent);
+  --glass-blur:    saturate(1.4) blur(20px);
+
+  /* A signal's halo; the dot sets its own colour. */
+  --glow: 0 0 6px 1px color-mix(in srgb, currentColor 50%, transparent);
+  /* --ring is the keyboard focus outline; --halo marks selected-or-found. */
+  --ring:        2px solid var(--gold-text);
+  --halo:        0 0 0 3px var(--gold-tint);
+  --scrim:       rgba(26, 16, 21, 0.35);   /* behind a modal */
+
+  --font-ui: "Inter", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-display: "Archivo", "Inter", system-ui, sans-serif;
+  --font-brand: "Cormorant Garamond", Georgia, serif;   /* wordmark lockups only */
+
+  /* Type ramp. --t-read is the 16px set on <body>.
+     11 meta and eyebrows | 12 dense labels and help | 13 UI and controls |
+     16 reading surfaces | 20 page and modal titles | 26 display. */
+  --t-meta: 11px;
+  --t-small: 12px;
+  --t-ui: 13px;
+  --t-read: 16px;
+  --t-title: 20px;
+  --t-display: 26px;
+
+  /* Leading: unitless ratios.
+     --lh-text running text | --lh-tight headings and stacked meta |
+     --lh-flush a glyph in a box the row already sizes. */
+  --lh-text: 1.5;
+  --lh-tight: 1.2;
+  --lh-flush: 1;
+
+  /* Measure: the maximum width of a line of running text. */
+  --measure: 68ch;
+
+  /* Spacing ladder, on a 4px grid. */
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-48: 48px;
+  --rail-width: 220px;
+  --control-h: 38px;
+  /* Radius ladder: four steps and a pill. Nested corners derive from their
+     container, calc(outer - pad), floored at --r-1. */
+  --r-1: 4px;      /* chips, dots, badges, inline marks */
+  --r-2: 8px;      /* controls, inputs, menus, toasts */
+  --r-3: 12px;     /* panels */
+  --r-4: 16px;     /* cards that own a screen */
+  --r-full: 999px; /* pills and switches */
+  /* Motion: --dur-state for colour, opacity and border changes; --dur-move for
+     anything that travels or changes size. Reduced motion sets both to zero. */
+  --dur-state: 140ms;
+  --dur-move: 220ms;
+  /* A value that tracks something happening now, such as a level meter. */
+  --dur-live: 60ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  /* Stacking tiers, named for what covers what. */
+  --z-raised:   1;    /* lifted inside its own flow */
+  --z-sticky:   10;   /* a header that stays while its list scrolls */
+  --z-dropdown: 20;   /* a menu anchored to the control that opened it */
+  --z-chrome:   30;   /* chrome floating over the page — the find bar */
+  --z-modal:    40;   /* a dialog and its backdrop */
+  --z-menu:     50;   /* the context menu */
+  --z-toast:    60;   /* transient status, over what it reports on */
+  --z-confirm:  70;   /* the confirm a dialog itself raises */
+  --z-record:   80;   /* the recording edge */
+  --rule: 1px solid var(--line);
+  --bubble-radius: 18px;
+  --wash: rgba(255, 193, 59, 0.08);   /* faint gold light on the page */
+}
+
+/* Dark theme. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg:          #0C0C0E;
+  --surface:     #141417;
+  --raised:      #1C1C21;
+  --line:        #2C2C33;
+  --line-soft:   #232329;
+  --switch-off:  #6E6E73;   /* an off switch's track */
+  --text:        #F6F2EA;
+  --text-2:      #D2CCC0;
+  --text-dim:    #948E82;
+  --gold:        #F2A900;
+  --gold-hover:  #FFC13B;
+  --gold-text:   #F2A900;   /* gold as text */
+  --gold-tint:   rgba(242, 169, 0, 0.13);
+  --on-gold:     #14100C;
+  --record:      #FF4D5E;
+  /* A record fill darkens on hover in both themes. */
+  --record-hover: #B81E33;
+  /* Steps down from --record: fills carry --on-record text. */
+  --record-fill: #D42A3C;
+  --record-text: #FF4D5E;   /* record as text */
+  --on-record:   #FFFFFF;
+  --danger:      #FF6B5A;
+  --danger-hover:#FF9184;
+  --success:     #4ADE80;
+  --wash: rgba(242, 169, 0, 0.05);
+
+  /* Elevation by lightness: #0C0C0E -> #141417 -> #1C1C21 -> #24242B. A raised
+     surface has no shadow; an overlay keeps one. */
+  --overlay: #24242B;
+  --scrim: rgba(0, 0, 0, 0.6);
+  --shadow-raised: none;
+  --shadow-overlay: 0 24px 48px -20px rgba(0, 0, 0, 0.7);
+}
+
+html, body, #root { background: var(--bg); color: var(--text); height: 100%; }
+body {
+  font-family: var(--font-ui);
+  line-height: var(--lh-text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  background:
+    radial-gradient(900px 500px at 12% 0%, var(--wash), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+}
+::selection { background: var(--gold); color: var(--on-gold); }
+
+/* Paragraphs, list items and blockquotes are held to --measure. */
+p, li, blockquote { max-width: var(--measure); }
+
+/* ===== Focus =====
+   One focus indicator for every focusable element, from --ring. :where() keeps
+   specificity at zero, so a component's own focus style wins. Fields below add
+   :focus. */
+:where(a[href], button, summary, [role="button"], [role="tab"], [role="switch"],
+       [role="option"], [role="menuitem"], [tabindex]:not([tabindex="-1"]),
+       input, select, textarea):focus-visible {
+  outline: var(--ring);
+  outline-offset: 2px;
+}
+
+/* ===== Type tiers =====
+   Archivo (--font-display): headings and display.
+   Cormorant Garamond (--font-brand): the two wordmark lockups.
+   Inter: UI and running text.
+   JetBrains Mono: eyebrows, timestamps, durations and ids. */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--t-meta);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+/* The eyebrow over the app's own answer, not over a field. */
+.eyebrow--accent { color: var(--gold-text); }
+
+/* ===== Headings ===== */
+.h1 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--t-display);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.01em;
+  margin: 0 0 var(--space-24);
+  color: var(--text);
+}
+.h1 em {
+  /* Emphasis is shown by colour. */
+  font-style: normal;
+  color: var(--gold-text);
+  font-weight: 600;
+}
+.h2 {
+  font-family: var(--font-ui);
+  font-size: var(--t-read);
+  line-height: var(--lh-tight);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text);
+  margin: var(--space-32) 0 var(--space-16);
+}
+
+/* ===== Brand bar (top of side rail) ===== */
+.brand-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 0 var(--space-24);
+  border-bottom: 1px solid var(--line);
+  margin-bottom: var(--space-24);
+  /* Pinned at the top of the rail. */
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  z-index: var(--z-raised);
+}
+.brand-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-2);
+  background: var(--surface) center/110% no-repeat url("/daisy-logo.png");
+  box-shadow: var(--shadow-raised);
+  border: 1px solid var(--line);
+  flex: 0 0 auto;
+}
+/* Dark theme uses the gold-ink mark. */
+:root[data-theme="dark"] .brand-mark {
+  background: transparent center/100% no-repeat url("/daisy-logo-gold.png");
+  border-color: transparent;
+}
+.brand-wordmark {
+  display: inline-flex;
+  flex-direction: column;
+  line-height: var(--lh-flush);
+}
+.brand-wordmark .wm-name {
+  /* Brand lockup: serif wordmark. */
+  font-family: var(--font-brand);
+  font-weight: 700;
+  font-size: var(--t-display);
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+/* The company lockup on About. Same serif as the Daisy wordmark. */
+.brand-lockup {
+  font-family: var(--font-brand);
+  font-size: var(--t-display);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  color: var(--gold-text);
+  line-height: var(--lh-flush);
+  margin-bottom: var(--space-8);
+}
+
+/* ===== Side rail ===== */
+.rail {
+  /* Tinted, without blur. */
+  background: var(--glass-surface);
+  border-right: var(--rule);
+  padding: var(--space-24) var(--space-16);
+  display: flex; flex-direction: column; gap: var(--space-16);
+  /* The rail scrolls its own items; the window does not scroll. */
+  min-height: 0; overflow-y: auto;
+}
+.rail .nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background: none;
+  border: none;
+  text-align: left;
+  font-family: var(--font-ui);
+  font-size: var(--t-ui);
+  font-weight: 500;
+  color: inherit;
+  padding: 6px var(--space-8);
+  border-radius: var(--r-1);
+  transition: color var(--dur-state) var(--ease), background var(--dur-state) var(--ease);
+  cursor: pointer;
+}
+/* Stroked in currentColor: the icon takes the item's colour. */
+.rail .nav-item__icon {
+  width: 18px;
+  height: 18px;
+  margin-right: var(--space-8);
+  flex: 0 0 auto;
+  opacity: 0.78;
+  transition: opacity var(--dur-state) var(--ease);
+}
+.rail .nav-item:hover .nav-item__icon,
+.rail .nav-item.active .nav-item__icon { opacity: 1; }
+.rail .nav-item::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 50%;
+  width: 3px; height: 0;
+  background: var(--gold);
+  border-radius: 0 var(--r-1) var(--r-1) 0;
+  transform: translateY(-50%);
+  transition: height var(--dur-move) var(--ease);
+}
+.rail .nav-item:hover { color: var(--text); background: var(--gold-tint); }
+.rail .nav-item.active {
+  color: var(--text);
+  background: var(--gold-tint);
+  font-weight: 600;
+}
+.rail .nav-item.active::before { height: 60%; }
+.rail .nav-item:disabled { color: var(--text-dim); cursor: not-allowed; }
+
+/* ===== Prominent "Record" CTA (top of the rail) ===== */
+/* Doubled class raises specificity over the generic `.rail .nav-item` rule. */
+.rail .nav-item.nav-item--record {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin: 4px 0 14px;
+  padding: 11px 12px 11px 14px;
+  background: var(--record-fill);  /* recording red */
+  color: var(--on-record);
+  border-radius: var(--r-2);
+  font-weight: 700;
+  font-size: var(--t-ui);
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.18);
+  transition: background var(--dur-state) var(--ease);
+}
+.rail .nav-item[draggable="true"] { cursor: grab; }
+.rail .nav-item--dragging { opacity: 0.45; }
+/* Drop indicator: a line above the drop target. */
+.rail .nav-item--drop-before {
+  box-shadow: inset 0 2px 0 0 var(--gold);
+}
+.rail .nav-item.nav-item--record::before { display: none; }      /* override generic accent stripe */
+.rail .nav-item.nav-item--record:hover    { background: var(--record-hover); color: var(--on-record); }
+.rail .nav-item.nav-item--record.active   { background: var(--record-hover); color: var(--on-record); }
+.rail .nav-item--record__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--surface);
+  flex: 0 0 auto;
+  /* No animation while idle; recording pulses animate opacity only. */
+}
+/* While a recording is live, the rail dot breathes. */
+.rail .nav-item--record__dot--live {
+  animation: pulse 1.6s ease-in-out infinite;
+  will-change: opacity;
+}
+
+/* ===== Surfaces / cards ===== */
+.surface {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  padding: var(--space-24);
+  box-shadow: var(--shadow-raised);
+}
+
+/* ===== Buttons ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: var(--control-h);
+  font-family: var(--font-ui);
+  white-space: nowrap;
+  font-size: var(--t-ui);
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  padding: 0 18px;
+  border-radius: var(--r-2);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: background var(--dur-state) var(--ease), border-color var(--dur-state) var(--ease), box-shadow var(--dur-state) var(--ease);
+}
+.btn:hover:not(:disabled) { border-color: var(--gold); }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* Link-styled action: native button chrome stripped, gold as text. */
+.btn-link {
+  appearance: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--gold-text);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.btn-link:hover:not(:disabled) { color: var(--gold-text); }
+.btn-link:disabled { opacity: 0.55; cursor: not-allowed; text-decoration: none; }
+.btn--primary {
+  background: var(--gold);
+  color: var(--on-gold);
+  border-color: var(--gold-text);
+}
+.btn--primary:hover:not(:disabled) { background: var(--gold-hover); border-color: var(--gold-hover); }
+/* Record CTA: red, for actions that begin or end capture. */
+.btn--record {
+  background: var(--record-fill);
+  color: var(--on-record);
+  border-color: var(--record-hover);
+}
+.btn--record:hover:not(:disabled) { background: var(--record-hover); border-color: var(--record-hover); }
+/* Outlined Delete inside a record's editor. */
+.btn--danger {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+}
+.btn--danger:hover:not(:disabled) {
+  background: var(--danger);
+  color: var(--surface);
+  border-color: var(--danger);
+}
+/* Destructive at full weight: the confirm step. */
+.btn--danger-solid {
+  background: var(--danger);
+  color: var(--surface);
+  border-color: var(--danger);
+}
+.btn--danger-solid:hover:not(:disabled) {
+  background: var(--danger-hover);
+  border-color: var(--danger-hover);
+}
+/* One button size (--control-h); .btn--big is the hero Record/Stop CTA. */
+
+/* Indeterminate "work in flight" affordance: a sweeping highlight bar across
+   the button background. */
+.btn--working {
+  position: relative;
+  overflow: hidden;
+}
+.btn--working::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--gold) 18%, transparent) 40%,
+    color-mix(in srgb, var(--gold) 32%, transparent) 50%,
+    color-mix(in srgb, var(--gold) 18%, transparent) 60%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: btn-working-sweep 1.2s linear infinite;
+  pointer-events: none;
+}
+@keyframes btn-working-sweep {
+  to { transform: translateX(100%); }
+}
+
+/* ===== Hero (Welcome / Unlock) ===== */
+.hero {
+  max-width: 640px;
+  margin: clamp(40px, 8vh, 96px) auto;
+  padding: 0 var(--space-32);
+}
+.hero-mark {
+  width: 96px; height: 96px;
+  border-radius: var(--r-3);
+  background: var(--surface) center/108% no-repeat url("/daisy-logo.png");
+  border: 1px solid var(--line);
+  image-rendering: pixelated;
+  margin-bottom: var(--space-24);
+  box-shadow: var(--shadow-raised);
+}
+.hero .lede {
+  font-size: var(--t-read);
+  line-height: var(--lh-text);
+  color: var(--text-2);
+  max-width: 46ch;
+  margin: 0 0 var(--space-16);
+}
+.hero .lede em { font-style: italic; color: var(--gold-text); font-weight: 500; }
+
+/* ===== Recorder (Active session) ===== */
+.recorder {
+  max-width: 540px; margin: var(--space-48) auto;
+  text-align: center;
+  padding: clamp(24px, 5vw, 48px);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-4);
+  box-shadow: var(--shadow-raised);
+  position: relative;
+  /* No overflow clip. The ::before wash clips itself via border-radius. */
+}
+/* The record card: a single column the width of its fields. */
+.record-card {
+  display: flex;
+  flex-direction: column;
+  width: min(340px, 100%);
+  margin: var(--space-24) auto;
+  padding: var(--space-24);
+  text-align: left;
+}
+.record-card__note { margin: var(--space-4) 0 0; font-size: var(--t-small); color: var(--text-dim); }
+.record-card__level { display: flex; align-items: center; gap: var(--space-8); margin-top: var(--space-8); }
+.record-card__check {
+  display: flex; align-items: center; gap: var(--space-8);
+  margin-top: var(--space-16); font-size: var(--t-ui);
+}
+.record-card__start { margin-top: var(--space-24); width: 100%; }
+
+.recorder::before {
+  content: "";
+  position: absolute; inset: 0; pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(400px 200px at 50% -10%, color-mix(in srgb, var(--gold) 10%, transparent), transparent 60%);
+}
+.recorder > * { position: relative; }
+
+
+/* ===== Transcript turn: chat bubbles =====
+   The saved transcript keeps the compact two-cell row; the live view and the
+   transcript tab render bubbles. Side and fill identify the speaker. */
+.turn {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 3px 10px;
+  border-radius: var(--r-1);
+  margin-bottom: 2px;
+  transition: background var(--dur-state) var(--ease);
+}
+/* Fills are opaque and mixed from tokens. In light the other speaker takes
+   the plain white fill and your own speech the cream; dark reverses. */
+.turn.me { background: color-mix(in srgb, var(--gold) 15%, var(--raised)); }
+.turn.them { background: var(--raised); }
+:root[data-theme="dark"] .turn.me { background: var(--raised); }
+:root[data-theme="dark"] .turn.them { background: color-mix(in srgb, var(--gold) 15%, var(--raised)); }
+/* Per-speaker hue arrives as --turn-tint and is mixed against --raised. */
+.turn--tinted {
+  background: color-mix(in srgb, var(--turn-tint) 78%, var(--raised));
+}
+:root[data-theme="dark"] .turn--tinted {
+  background: color-mix(in srgb, var(--turn-tint) 13%, var(--raised));
+}
+.turn .who {
+  flex: 0 0 46px;
+  text-align: right;
+  font-size: var(--t-meta); letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--text-dim);
+}
+.turn.them .who { font-weight: 600; color: var(--gold-text); }
+
+/* The tab owns its canvas; bubbles sit on it. */
+.transcript-tab { background: var(--surface); color: var(--text); }
+
+/* Live/transcript-tab bubbles. A bubble hugs its words and stops at the
+   reading measure. THEM anchors left, ME right, and the one squared corner is
+   the tail. */
+:is(.notebook__transcript, .transcript-tab) .turn {
+  display: block;
+  padding: 10px 15px;
+  border: 0;
+}
+/* Only a turn with a side is a bubble: a pause and a row whose
+   speaker is unsettled run the full width of the column. */
+:is(.notebook__transcript, .transcript-tab) :is(.turn.me, .turn.them) {
+  width: fit-content;
+  max-width: min(60%, var(--measure));
+  border-radius: var(--bubble-radius);
+}
+/* The speaker names the bubble from above it; the words start at the
+   bubble's own left edge. */
+:is(.notebook__transcript, .transcript-tab) .turn .who {
+  display: block;
+  min-width: 0;
+  margin-bottom: var(--space-4);
+  text-align: left;
+  overflow-wrap: break-word;
+}
+:is(.notebook__transcript, .transcript-tab) .turn .who .who-side-badge {
+  display: block;
+  margin: 2px 0 0;
+}
+:is(.notebook__transcript, .transcript-tab) .turn.them {
+  margin-right: auto;
+  border-bottom-left-radius: 6px;
+}
+:is(.notebook__transcript, .transcript-tab) .turn.them .who { font-weight: 700; }
+:is(.notebook__transcript, .transcript-tab) .turn.me {
+  margin-left: auto;
+  text-align: right;
+  border-bottom-right-radius: 6px;
+}
+.turn .turn-text { flex: 1 1 0; min-width: 0; line-height: var(--lh-text); word-break: break-word; }
+.turn .turn-ts {
+  flex: none; font-family: var(--font-mono); font-size: var(--t-meta); color: var(--text-dim);
+  /* Dark bubbles take --text-2 below. */
+  /* Sits inside .turn-text, ahead of the words. */
+  margin-right: 10px;
+}
+.turn p { margin: 0; }
+
+/* A line the engine has not settled on yet, and the word it is still
+   reaching for. */
+.turn--interim { opacity: 0.65; }
+.turn-tail { opacity: 0.65; }
+/* Where the recording was paused. */
+.turn--pause { color: var(--text-dim); font-style: italic; }
+
+/* Mic speech whose speaker is not settled yet. Centred and symmetric until
+   the final takes a side or is dropped. */
+.notebook__transcript .turn--pending {
+  display: block;
+  width: 70%;
+  margin-left: auto;
+  margin-right: auto;
+  background: transparent;
+  border: 1px dashed var(--line);
+  border-radius: var(--bubble-radius);
+  padding: 10px 15px;
+  color: var(--text-2);
+  font-style: italic;
+  text-align: center;
+  opacity: 0.75;
+}
+
+/* Transient highlight when a search result scrolls to its matched line. */
+.turn--found { animation: turn-found-flash 2.4s ease-out; }
+@keyframes turn-found-flash {
+  0%   { background: var(--gold-tint); }
+  18%  { background: color-mix(in srgb, var(--gold) 20%, transparent); }
+  100% { background: transparent; }
+}
+
+/* ===== Inputs =====
+   One shared rule for every text-like input type; a bare <input> matches too. */
+:where(input:not([type]),
+input[type="text"],
+input[type="password"],
+input[type="url"],
+input[type="email"],
+input[type="number"],
+input[type="search"],
+input[type="tel"],
+input[type="date"],
+input[type="time"],
+select,
+textarea) {
+  font-family: inherit;
+  font-size: var(--t-ui);
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--surface);
+  color: var(--text);
+  transition: border-color var(--dur-state) var(--ease), box-shadow var(--dur-state) var(--ease);
+}
+/* Every single-line control shares the .btn height (--control-h). Not
+   textarea, which grows with content. :where() keeps these at zero
+   specificity: a single-class special (.findbar__input, …) wins. */
+:where(input:not([type]),
+input[type="text"],
+input[type="password"],
+input[type="url"],
+input[type="email"],
+input[type="number"],
+input[type="search"],
+input[type="tel"],
+input[type="date"],
+input[type="time"],
+select) {
+  height: var(--control-h);
+  padding-top: 0;
+  padding-bottom: 0;
+}
+:where(input:not([type]),
+input[type="text"],
+input[type="password"],
+input[type="url"],
+input[type="email"],
+input[type="number"],
+input[type="search"],
+input[type="tel"],
+input[type="date"],
+input[type="time"],
+select,
+textarea):focus {
+  outline: var(--ring);
+  outline-offset: -1px;
+  border-color: var(--gold-text);
+}
+
+/* A control the app has switched off reads the same everywhere: dimmed, and
+   the cursor says so. Same fade as .btn:disabled. */
+:where(input:not([type]),
+input[type="text"],
+input[type="password"],
+input[type="url"],
+input[type="email"],
+input[type="number"],
+input[type="search"],
+input[type="tel"],
+input[type="date"],
+input[type="time"],
+select,
+textarea):disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ----- Select (the app's own list of values) -----
+   The trigger wears the text-field shape; the list is the one .menu surface,
+   anchored under the control that opened it. */
+.select { position: relative; display: inline-block; }
+.select__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  width: 100%;
+  height: var(--control-h);
+  padding: 0 var(--space-12);
+  font-family: inherit;
+  font-size: var(--t-ui);
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color var(--dur-state) var(--ease), box-shadow var(--dur-state) var(--ease);
+}
+.select__trigger:hover:not(:disabled) { border-color: var(--gold-text); }
+.select__trigger:focus { outline: var(--ring); outline-offset: -1px; border-color: var(--gold-text); }
+.select__trigger:disabled { opacity: 0.55; cursor: not-allowed; }
+.select__value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.select__caret { flex: none; font-size: var(--t-meta); color: var(--text-dim); line-height: var(--lh-flush); }
+.select__pop {
+  position: absolute;
+  z-index: var(--z-dropdown);
+  left: 0;
+  top: calc(100% + var(--space-4));
+  min-width: 100%;
+  max-height: 320px;
+  overflow-y: auto;
+}
+/* First-run mic picker: the step's own column width. */
+.wizard-mic { display: block; width: 320px; margin-bottom: var(--space-12); }
+/* The trigger picker under its label, held to the form's column. */
+.wf-trigger { display: block; margin-top: var(--space-4); max-width: 420px; }
+/* The voiceprint picker stands above the name it fills in. */
+.speaker-voiceprint { margin-bottom: var(--space-12); }
+/* The mic picker on the live bar takes what the row leaves it. */
+.live-mic { max-width: 100%; min-width: 0; }
+/* Settings pickers share one column width, so a page of rows reads as a column. */
+/* A picker measures the settings column: every one inside a row, and the one
+   standing on its own above the block it names. */
+.set-row .select,
+.set-select { display: block; width: 100%; max-width: 320px; }
+/* The per-calendar auto-tag picker fills its table cell. */
+.cal-tag-select { display: block; width: 100%; }
+.select__option { cursor: pointer; }
+.select__option[data-active="true"] { background: var(--gold-tint); }
+.select__option.is-on { font-weight: 600; }
+.select__option[aria-disabled="true"] { color: var(--text-dim); cursor: not-allowed; }
+
+/* Diagnostic/log dumps: compact mono textarea. */
+.textarea--mono {
+  font-family: var(--font-mono);
+  font-size: var(--t-small);
+}
+.app { display: grid; grid-template-columns: var(--rail-width) 1fr; height: 100%; overflow: hidden; }
+/* Both columns are allowed to shrink below their content; each scrolls
+   internally without growing .app past the viewport. */
+.app > .rail, .app > .main { min-height: 0; }
+/* `.rail` and `.rail .nav-item` styling lives in the "Side rail refinement"
+   block above. */
+/* Shell is a flex column: top banners (trial/update) take their natural
+   height and the body fills the rest. */
+.main { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+/* Every route inside the rail owns its own scroll, so its header can stay
+   pinned while the body moves under it. The wizard is the exception — a
+   takeover form with no page header. */
+.main__body { flex: 1; min-height: 0; overflow: hidden; }
+.main__body--scroll { overflow-y: auto; }
+/* `.h1`/`.h2` styling lives in the "Refined headings" block above. */
+/* Machine output inside running text: a number, an id, a path, a key. The
+   face is the meaning, so it is a class the sheet can be asked about. */
+.mono { font-family: var(--font-mono); }
+.meta { font-size: var(--t-ui); color: var(--text-dim); }
+
+/* ===== Page =====
+   A document reads in a measure (`.page`); a pane fills the width and manages
+   its own rows (`.page--bleed`). Both use --page-pad as the inset. */
+.page {
+  --page-pad: var(--space-24);
+  /* The header's own height, written here by PageHeader once it is laid out.
+     Anything else that sticks inside the page offsets by it to land under the
+     band rather than behind it. */
+  --page-header-h: 0px;
+  height: 100%;
+  min-height: 0;
+  /* `scroll` reserves the scrollbar gutter whether or not the page overflows. */
+  overflow-y: scroll;
+  /* Scrolling something into view — an anchor, a focused control, a spec's
+     click — stops it below the band instead of under it. */
+  scroll-padding-top: var(--page-header-h);
+}
+.page__body { padding: var(--space-24) var(--page-pad) var(--space-48); }
+.page__measure { max-width: 880px; }
+/* A pane route scrolls nothing itself: the panes inside it clip and scroll,
+   and they need a height to do it, so this one stays a flex column. */
+.page--bleed { display: flex; flex-direction: column; overflow: hidden; }
+/* A control the page header carries beside its label. */
+.header-field { display: inline-flex; align-items: center; gap: var(--space-8); }
+
+/* ===== Page header =====
+   One band at the top of every route: the title, an optional one-line
+   subtitle, an actions slot at the right edge, and an optional filter row.
+   The page is the scroller and this is sticky inside it, so the body passes
+   under the band rather than stopping at its edge. */
+.page-header {
+  position: sticky; top: 0; z-index: var(--z-sticky);
+  flex: 0 0 auto;
+  padding: var(--space-16) var(--page-pad) var(--space-12);
+  background: var(--glass-band);
+  backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--line);
+}
+/* A pane route clips its panes below the band, so nothing passes behind it
+   here: the band takes the tint alone, as the rail does. */
+.page--bleed > .page-header { backdrop-filter: none; }
+.page-header__bar { display: flex; align-items: center; gap: var(--space-12); min-height: 30px; }
+.page-header__title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--t-display);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.01em;
+  margin: 0;
+  min-width: 0;
+  color: var(--text);
+}
+.page-header__actions { margin-left: auto; flex: 0 0 auto; display: flex; align-items: center; gap: var(--space-8); }
+.page-header__subtitle {
+  margin: var(--space-4) 0 0;
+  max-width: var(--measure);
+  font-size: var(--t-ui);
+  line-height: var(--lh-text);
+  color: var(--text-dim);
+}
+/* Marks the Settings header while Nerd Mode is on. */
+.page-header__badge {
+  margin-left: var(--space-8);
+  padding: 0 var(--space-4);
+  border-radius: var(--r-1);
+  font-size: var(--t-meta);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  vertical-align: middle;
+  color: var(--gold-text);
+  background: var(--gold-tint);
+}
+.page-header__filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); margin-top: var(--space-12); }
+
+/* ===== Library list =====
+   The title takes the first line; when, how long and which tags follow on a
+   meta line under it. */
+.session-row {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: var(--space-8) var(--space-16);
+  border-bottom: 1px solid var(--line); cursor: pointer;
+  transition: background var(--dur-state) var(--ease);
+}
+.session-row:hover { background: var(--line-soft); }
+.session-row__title { display: flex; align-items: center; gap: var(--space-4); min-width: 0; }
+.session-row__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.session-row__meta { display: flex; align-items: center; gap: var(--space-8); min-width: 0; }
+.session-row__when { font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* Tag dots and any ghost suggestion sit at the row's right edge. They carry
+   their own clicks, so they stay out of the middle of the row — which is the
+   target for opening the meeting. */
+.session-row__marks { display: inline-flex; align-items: center; gap: var(--space-8); margin-left: auto; flex-shrink: 0; }
+.session-row__tags { display: inline-flex; align-items: center; gap: var(--space-4); flex-shrink: 0; }
+.session-row__tagdot { width: 9px; height: 9px; border-radius: var(--r-1); display: inline-block; background: var(--tag-color, var(--gold)); }
+.session-row__tagmore { font-size: var(--t-meta); color: var(--text-dim); }
+/* Where a recording came from: PHONE, IMPORTED. */
+.kind-chip {
+  margin-left: var(--space-4);
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--r-full);
+  background: var(--raised);
+  border: 1px solid var(--line);
+  color: var(--text-2);
+  font-size: var(--t-meta);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+/* Active session */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
+}
+
+/* =========================================================================
+   Component classes (tags, modal, notebook, split, finalize, library
+   master-detail, summary pane, search). Composes with the
+   .btn / .surface / .chip / .turn system above; reuses the brand tokens.
+   ========================================================================= */
+
+/* ----- Tag UI ----- */
+.tag-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 2px 9px; border-radius: var(--r-full);
+  font-size: var(--t-meta); letter-spacing: 0.06em;
+  /* Fill and ring take the tag's hue; the label mixes it toward ink to
+     stay legible at any hue. */
+  color: color-mix(in srgb, var(--tag-color, var(--gold)) 50%, var(--text));
+  background: color-mix(in srgb, var(--tag-color, var(--gold)) 12%, transparent);
+  border: 1px solid var(--tag-color, var(--gold));
+}
+/* Chip as a toggle (filter bar, tag picker). --off drops the fill, keeps
+   the dot. */
+.tag-chip--button {
+  appearance: none;
+  font: inherit;
+  font-size: var(--t-meta);
+  cursor: pointer;
+}
+.tag-chip--button:disabled { opacity: 0.55; cursor: not-allowed; }
+/* Selected: heavier wash, full-strength ring, bolder label. */
+.tag-chip--on {
+  background: color-mix(in srgb, var(--tag-color, var(--gold)) 28%, transparent);
+  border-color: var(--tag-color, var(--gold));
+  box-shadow: inset 0 0 0 1px var(--tag-color, var(--gold));
+  font-weight: 700;
+}
+.tag-chip--off {
+  color: var(--text-dim);
+  background: transparent;
+  border-color: var(--line);
+}
+.tag-chip--off:hover:not(:disabled) { color: var(--text); border-color: var(--tag-color, var(--gold)); }
+.tag-chip--ghost {
+  background: var(--surface); color: var(--text-dim);
+  border: 1px dashed var(--line-soft); cursor: pointer;
+}
+.tag-chip--ghost:hover { border-color: var(--gold-text); color: var(--text); }
+.tag-chip__dot { width: 6px; height: 6px; border-radius: 50%; flex: 0 0 auto; background: var(--tag-color, var(--gold)); }
+.tag-chip__pencil { font-size: var(--t-meta); color: var(--gold-text); cursor: pointer; opacity: 0.7; }
+.tag-chip__pencil:hover { opacity: 1; }
+
+/* A dropdown of names and controls; it uses the UI font. */
+.tag-combobox { position: relative; font-family: var(--font-ui); min-width: min(14ch, 100%); }
+.tag-combobox__input { width: 100%; }
+/* Rendered at the document root, so no scrolling pane clips it; useAnchoredPop
+   places it under (or over) the input at the input's width. The rows are
+   .menu__item, so this list wears the same surface as every other menu. */
+.tag-combobox__pop {
+  position: fixed; z-index: var(--z-menu); font-family: var(--font-ui);
+  overflow: auto;
+}
+.tag-combobox__create { color: var(--gold-text); }
+
+/* Naming a new tag: the swatches, the error, and the two buttons, stacked
+   inside a menu as narrow as the input it hangs from. The buttons keep the
+   one button height and never split a label across lines, so they take a row
+   each when the menu cannot hold both. */
+.tag-combobox__create-form { flex-direction: column; align-items: stretch; gap: var(--space-8); cursor: default; }
+.tag-combobox__create-label { color: var(--text-dim); font-size: var(--t-meta); }
+.tag-combobox__create-error { color: var(--danger); font-size: var(--t-meta); }
+.tag-combobox__create-actions { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+.tag-combobox__create-actions .btn { flex: 1 1 auto; }
+
+/* Suggested section — vocab / last-time tag hints above the plain option
+   list. The row itself isn't a single click target (pick vs. dismiss are
+   separate controls), so it drops the pointer cursor the plain rows use. */
+.tag-combobox__section {
+  font-size: var(--t-meta); letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 8px 10px 4px;
+}
+.tag-combobox__suggested { cursor: default; justify-content: space-between; }
+.tag-combobox__suggested-pick {
+  appearance: none; border: 0; background: none; font: inherit; color: inherit;
+  text-align: left; cursor: pointer; padding: 0;
+  display: flex; align-items: center; gap: var(--space-8); min-width: 0; flex: 1 1 auto;
+}
+.tag-combobox__evidence {
+  color: var(--text-dim); font-size: var(--t-meta);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tag-combobox__dismiss {
+  appearance: none; border: 0; background: none; font: inherit; color: var(--text-dim);
+  cursor: pointer; padding: 2px 4px; line-height: var(--lh-flush); flex: 0 0 auto;
+}
+.tag-combobox__dismiss:hover { color: var(--text); }
+
+/* "Tags from last time" chip: expands inline in the flow. */
+.last-time-chip { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.last-time-chip__panel {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+  padding: var(--space-8); border-radius: var(--r-2);
+  background: var(--surface); border: 1px solid var(--line);
+}
+.last-time-chip__apply { padding: 3px 10px; font-size: var(--t-small); }
+
+.color-picker { display: flex; flex-wrap: wrap; gap: var(--space-8); align-items: center; }
+/* Twelve swatches, six to a row, in their own grid beside the native picker
+   and the hex field. The tracks cap at 24px and shrink with the menu width. */
+.color-picker__grid {
+  display: grid; grid-template-columns: repeat(6, minmax(0, 24px));
+  gap: var(--space-8); justify-content: start; min-width: 0;
+}
+.color-picker__swatch {
+  appearance: none; padding: 0;
+  width: 100%; aspect-ratio: 1; border-radius: var(--r-2); cursor: pointer;
+  border: 2px solid transparent;
+  background: var(--swatch, var(--gold));
+  display: grid; place-items: center;
+}
+/* Selection is shown with a mark on its own disc, legible on any hex. */
+.color-picker__swatch--sel { border-color: var(--text); }
+.color-picker__swatch--sel::after {
+  content: "\2713";
+  width: 18px; height: 18px;
+  display: grid; place-items: center;
+  border-radius: var(--r-full);
+  background: var(--overlay); color: var(--text);
+  font-size: var(--t-small); font-weight: 700; line-height: var(--lh-flush);
+}
+.color-picker__hex {
+  font-family: var(--font-mono);
+  width: 104px; height: auto; padding: var(--space-4) var(--space-8);
+  border: 1px solid var(--line); border-radius: var(--r-1);
+  background: var(--surface); font-size: var(--t-meta);
+}
+.color-picker__native {
+  width: 32px; height: 32px; padding: 0;
+  border: 1px solid var(--line); border-radius: var(--r-2);
+  background: none; cursor: pointer;
+}
+
+/* ----- Modal ----- */
+.modal-backdrop {
+  position: fixed; inset: 0; background: var(--scrim);
+  display: flex; align-items: center; justify-content: center; z-index: var(--z-modal);
+}
+/* A confirm raised by a dialog covers the dialog that raised it. */
+.modal-backdrop--elevated { z-index: var(--z-confirm); }
+.modal {
+  background: var(--overlay); border: 1px solid var(--line);
+  border-radius: var(--r-2); box-shadow: var(--shadow-overlay);
+  width: min(520px, 92vw); padding: 20px 22px;
+}
+.modal__title {
+  font-family: var(--font-display);
+  font-size: var(--t-title); font-weight: 600; color: var(--text); margin: 0 0 4px;
+}
+.modal__actions {
+  display: flex; gap: var(--space-8); margin-top: var(--space-16); padding-top: var(--space-12);
+  border-top: 1px dashed var(--line-soft);
+}
+
+/* ----- The recording mark -----
+   While a recording is live a --record edge runs across the top of the window,
+   over everything including a dialog. Paused steps the same edge back. */
+.rec-edge {
+  position: fixed; inset: 0 0 auto 0; height: 3px;
+  background: var(--record); z-index: var(--z-record);
+  pointer-events: none;
+}
+.app[data-recording="paused"] .rec-edge {
+  background: color-mix(in srgb, var(--record) 40%, var(--surface));
+}
+
+/* ----- Notebook recording layout ----- */
+.notebook { display: flex; flex-direction: column; height: 100%; }
+.notebook__head {
+  display: flex; flex-direction: column;
+  height: 100%; box-sizing: border-box;
+  /* Vertical scrolling only. */
+  overflow-y: auto; overflow-x: hidden;
+  padding: 12px 18px 6px; border-bottom: 1px solid var(--line);
+}
+.notebook__topline { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+.notebook__rec {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px; border-radius: var(--r-full);
+  border: 1px solid var(--record); color: var(--record-text);
+  font-size: var(--t-meta); letter-spacing: 0.14em; text-transform: uppercase;
+}
+.notebook__rec-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--record);
+  animation: pulse 1.6s ease-in-out infinite;
+  will-change: opacity;
+}
+.notebook__title {
+  display: block; width: 100%;
+  height: auto; padding: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-display); font-weight: 600; letter-spacing: -0.01em;
+  color: var(--text); background: transparent; border: none; border-radius: 0;
+  margin: 6px 0;
+}
+.notebook__title:focus { outline: var(--ring); outline-offset: 2px; border-radius: var(--r-1); }
+.notebook__tags { display: flex; align-items: center; gap: var(--space-8); flex-wrap: wrap; margin-bottom: var(--space-8); }
+.notebook__notes {
+  width: 100%; flex: 1 1 60px; min-height: 60px; resize: none;
+  border: 1px solid var(--line); border-radius: var(--r-2);
+  padding: 10px 12px; font-family: inherit; font-size: var(--t-ui); line-height: var(--lh-text);
+  background: var(--surface); color: var(--text); outline: none;
+}
+.notebook__notes:focus { outline: var(--ring); outline-offset: -1px; border-color: var(--gold-text); }
+.notebook__transcript {
+  height: 100%; box-sizing: border-box;
+  overflow-y: auto; overflow-x: hidden;
+  background: var(--surface); padding: 10px 18px;
+}
+.notebook__controls {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: var(--space-12); background: var(--surface); border-top: 1px solid var(--line);
+}
+.btn--big { height: 46px; font-size: var(--t-read); font-weight: 600; padding: 0 28px; border-radius: var(--r-2); }
+
+/* ----- Resizable split ----- */
+.rsplit { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+.rsplit__pane { min-height: 0; overflow: auto; transition: flex-basis var(--dur-move) var(--ease); }
+.rsplit--dragging .rsplit__pane { transition: none; }
+.rsplit__divider {
+  height: 8px; cursor: row-resize; flex: 0 0 8px; position: relative;
+  background: linear-gradient(180deg, transparent, var(--line) 40%, var(--line) 60%, transparent);
+}
+.rsplit__divider::before {
+  content: ""; position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 36px; height: 2px; background: var(--text-dim); border-radius: var(--r-full); opacity: 0.4;
+}
+
+/* ----- Toast stack (corner; non-blocking) -----
+   Rendered by NotificationToast.tsx from the unified toast store. */
+.bgfin-stack {
+  position: fixed; right: 18px; bottom: 18px; z-index: var(--z-toast);
+  display: flex; flex-direction: column-reverse; gap: var(--space-8);
+  pointer-events: none;
+  max-width: min(360px, calc(100vw - 36px));
+}
+/* While the live notebook is open the stack sits above its control bar
+   (a 46px button, the bar's padding and its top rule), so Pause, Resume,
+   Finish and the actions menu stay uncovered at every window size. */
+:root:has(.notebook__controls) .bgfin-stack {
+  bottom: calc(18px + 46px + 2 * var(--space-12) + 1px);
+}
+.bgfin-stack > * { pointer-events: auto; }
+.bgfin-toast {
+  display: flex; align-items: center; gap: 10px;
+  padding: var(--space-8) var(--space-12); border-radius: var(--r-2);
+  background: var(--glass-overlay);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--line);
+  font-size: var(--t-ui); color: var(--text);
+  box-shadow: var(--shadow-overlay);
+  max-width: 100%;
+}
+.bgfin-toast--working { border-left: 3px solid var(--gold-text); }
+/* Indeterminate progress bar — a sweeping bar for "working" toasts with no
+   real % (e.g. a single opaque backend op like diarize). */
+@keyframes bgfin-indeterminate {
+  0%   { transform: translateX(-110%); }
+  100% { transform: translateX(260%); }
+}
+.bgfin-toast__track {
+  height: 4px;
+  margin-top: var(--space-4);
+  border-radius: var(--r-full);
+  background: var(--line);
+  overflow: hidden;
+}
+.bgfin-toast__bar {
+  height: 100%;
+  background: var(--gold-text);
+  transition: width var(--dur-move) var(--ease);
+}
+.bgfin-toast__bar--indeterminate {
+  width: 38%;
+  animation: bgfin-indeterminate 1.1s ease-in-out infinite;
+}
+.bgfin-toast--stuck { border-left: 3px solid var(--gold-hover); }
+.bgfin-toast--done { border-left: 3px solid var(--success); }
+/* Opaque on hover. */
+.bgfin-toast--clickable { cursor: pointer; }
+.bgfin-toast--clickable:hover {
+  background: color-mix(in srgb, var(--gold) 12%, var(--bg));
+  border-color: var(--gold-text);
+}
+.bgfin-text {
+  flex: 1; min-width: 0;
+  overflow-wrap: anywhere;
+}
+/* The machine-readable half of a toast: an id, a path, a count. */
+.bgfin-detail {
+  font-family: var(--font-mono);
+  font-size: var(--t-meta);
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+}
+.bgfin-dot {
+  display: inline-block;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--gold-text);
+  flex-shrink: 0;
+}
+.bgfin-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.bgfin-action {
+  background: transparent; border: 1px solid var(--line);
+  border-radius: var(--r-2); padding: 2px 8px; font-size: var(--t-small);
+  color: var(--text); cursor: pointer;
+}
+.bgfin-action:hover { background: var(--gold-tint); }
+
+/* ----- Action menu (meeting detail page) ----- */
+.summary-pane__title-row {
+  display: flex; align-items: center; gap: var(--space-12); margin: 0 0 4px;
+}
+/* Pushes what follows it to the row's trailing edge. */
+.row-trail { margin-left: auto; }
+.action-menu { position: relative; flex: 0 0 auto; }
+/* Opens the actions menu; it wears .btn. */
+.action-menu__caret { font-size: var(--t-meta); opacity: 0.85; line-height: var(--lh-flush); }
+.action-menu__pop {
+  position: absolute; z-index: var(--z-dropdown); right: 0; top: calc(100% + var(--space-4));
+  min-width: 200px;
+}
+.action-menu__subwrap { position: relative; display: flex; flex-direction: column; }
+.action-menu__pop--sub {
+  right: calc(100% + var(--space-4));
+  top: calc(-1 * var(--space-4));
+}
+/* Invisible bridge over the 4px gap to the parent item: crossing it keeps
+   the pointer inside the flyout's DOM, so mouseleave cannot fire mid-way. */
+.action-menu__pop--sub::after {
+  content: ""; position: absolute;
+  top: 0; bottom: 0; left: 100%; width: 10px;
+}
+@keyframes rec-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
+}
+
+/* ----- Library master-detail + summary pane ----- */
+/* The list column's resting width; the divider sets --library-list-w on the grid. */
+.library { display: grid; grid-template-columns: var(--library-list-w, 380px) 6px 1fr; flex: 1; height: 100%; min-height: 0; }
+.library__list { border-right: 1px solid var(--line); overflow: auto; }
+.library__divider { cursor: col-resize; background: transparent; }
+.library__divider:hover { background: var(--line); }
+.session-row--active {
+  background: color-mix(in srgb, var(--gold) 7%, transparent);
+  /* The 3px mark eats 3px of the row's inset, so the text stays put. */
+  border-left: 3px solid var(--gold);
+  padding-left: calc(var(--space-16) - 3px);
+}
+.session-row--active:hover { background: color-mix(in srgb, var(--gold) 10%, transparent); }
+.session-row__title {
+  /* Inter. */
+  font-size: var(--t-ui); font-weight: 500; color: var(--text);
+}
+.session-row__when {
+  font-family: var(--font-mono);
+  color: var(--gold-text); font-size: var(--t-meta);
+}
+.session-row__dur {
+  font-family: var(--font-mono);
+  color: var(--text-dim); font-size: var(--t-meta);
+}
+
+.summary-pane { padding: 16px 26px 22px; overflow: auto; background: var(--surface); scrollbar-gutter: stable; overscroll-behavior: contain; }
+.summary-pane__eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--t-meta); letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim);
+}
+.summary-pane__title {
+  font-family: var(--font-display);
+  font-size: var(--t-title); font-weight: 600; letter-spacing: -0.01em; line-height: var(--lh-tight);
+  margin: 2px 0 4px; color: var(--text);
+}
+/* The title edited in place: the same type on a field whose only chrome is
+   its underline, and the ring when focus lands there. */
+.summary-pane__title--edit {
+  display: block; flex: 1 1 auto; height: auto; padding: 0;
+  background: transparent; border: none; border-radius: 0;
+  border-bottom: 2px solid var(--gold-text);
+}
+.summary-pane__title--edit:focus { outline: var(--ring); outline-offset: 2px; }
+.summary-pane__meta {
+  display: flex; align-items: center; gap: var(--space-8); flex-wrap: wrap; margin-bottom: 10px;
+  font-family: var(--font-mono); font-size: var(--t-meta); color: var(--text-dim);
+}
+.summary-pane__sid {
+  margin-top: var(--space-32);
+  font-family: var(--font-mono);
+  font-size: var(--t-meta); color: var(--text-dim); opacity: 0.5;
+  text-align: right; user-select: text;
+}
+.who-side-badge {
+  margin-left: 6px; font-size: var(--t-meta); font-weight: 600; padding: 1px 5px;
+  border-radius: var(--r-1); background: var(--raised); border: 1px solid var(--line);
+  color: var(--text-2);
+  letter-spacing: 0.04em; text-transform: uppercase;
+}
+/* ----- Participant rows (Participants tab) ----- */
+.side-group { display: flex; flex-direction: column; gap: var(--space-12); margin-bottom: var(--space-8); }
+.side-group__title {
+  font-size: var(--t-small); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text); border-bottom: 1px solid var(--line); padding-bottom: var(--space-4);
+}
+.participant-section { display: flex; flex-direction: column; gap: 6px; }
+.participant-section__title {
+  font-size: var(--t-meta); letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-dim);
+}
+.participant-section__hint { font-size: var(--t-small); color: var(--text-dim); }
+.participant-list { display: flex; flex-direction: column; gap: 2px; }
+.participant-row {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.participant-row:last-child { border-bottom: none; }
+.participant-row__main {
+  flex: 1; min-width: 0; text-align: left;
+  background: transparent; border: 0; padding: 4px 6px;
+  cursor: pointer; border-radius: var(--r-2);
+}
+.participant-row__main:hover { background: var(--gold-tint); }
+.participant-row__name { font-size: var(--t-ui); font-weight: 500; color: var(--text-dim); }
+.participant-row__name[data-labeled="1"] { color: var(--text); }
+.participant-row__meta { font-size: var(--t-meta); color: var(--text-dim); margin-top: 2px; }
+.participant-row__mixed { color: var(--danger); margin-right: 6px; }
+.meta--danger { color: var(--danger); }
+.enroll-mixed-warning {
+  font-size: var(--t-meta); color: var(--danger);
+  margin: 0 0 12px; padding: 0;
+  max-width: 100%; overflow-wrap: anywhere;
+}
+
+/* ----- Recording playback bar (summary pane) ----- */
+.playback {
+  display: flex; align-items: center; gap: 10px;
+  margin: 10px 0 14px;
+}
+.playback__audio { flex: 1; height: 36px; min-width: 0; }
+.playback__err {
+  font-size: var(--t-small); color: var(--danger);
+  flex: 0 0 auto;
+}
+.turn[role="button"]:hover { background: var(--line-soft); }
+
+.detail-tabs {
+  /* Tabs use Inter, capitalized. */
+  display: flex; align-items: center; gap: 18px; padding-bottom: var(--space-8);
+  border-bottom: 1px solid var(--line); margin-bottom: var(--space-16);
+  font-size: var(--t-ui); font-weight: 600; letter-spacing: 0.01em; color: var(--text-dim);
+  text-transform: capitalize;
+}
+.detail-tabs__tab { cursor: pointer; }
+.detail-tabs__tab--on {
+  color: var(--text); border-bottom: 2px solid var(--gold);
+  padding-bottom: var(--space-8); margin-bottom: -9px;
+}
+.tldr-callout {
+  background: var(--gold-tint); border-left: 3px solid var(--gold-hover);
+  padding: 10px 14px; border-radius: 0 var(--r-2) var(--r-2) 0; margin-bottom: var(--space-16);
+  font-size: var(--t-ui); line-height: var(--lh-text); color: var(--text);
+}
+.summary-edit {
+  width: 100%; min-height: 320px;
+  font-family: var(--font-mono);
+  font-size: var(--t-small); line-height: var(--lh-text);
+  border: 1px solid var(--line); border-radius: var(--r-2); padding: 12px 14px;
+  background: var(--surface); color: var(--text);
+}
+.summary-actions {
+  display: flex; gap: var(--space-8); margin-top: 18px; padding-top: 14px;
+  border-top: 1px dashed var(--line-soft); flex-wrap: wrap;
+}
+.markdown-view h1 {
+  font-family: var(--font-display);
+  font-size: var(--t-title); font-weight: 600; color: var(--text); margin: 8px 0 4px;
+}
+.markdown-view h2, .markdown-view h3 {
+  font-size: var(--t-ui); font-weight: 600; letter-spacing: 0.01em; color: var(--text);
+}
+.markdown-view h2 { margin: 14px 0 6px; }
+.markdown-view h3 { margin: 12px 0 4px; }
+.markdown-view ul { margin: 0 0 8px; padding-left: 18px; font-size: var(--t-ui); line-height: var(--lh-text); }
+.markdown-view p { font-size: var(--t-ui); line-height: var(--lh-text); color: var(--text); margin: 6px 0; }
+
+/* Mono variant for EULA / legal pages: strips accent colours inherited from
+   the markdown-view rules; colour comes from the parent container. */
+.markdown-view--mono,
+.markdown-view--mono h1,
+.markdown-view--mono h2,
+.markdown-view--mono h3,
+.markdown-view--mono p,
+.markdown-view--mono li,
+.markdown-view--mono strong,
+.markdown-view--mono em,
+.markdown-view--mono a { color: inherit; }
+.markdown-view--mono h1 { font-family: inherit; }
+.markdown-view--mono h2,
+.markdown-view--mono h3 { font-family: inherit; letter-spacing: 0; text-transform: none; }
+
+/* ===== Wizard-scoped overrides =====
+   All selectors are nested under .wizard-step; the Unlock page's .hero /
+   .hero-mark / .h1 treatment is unaffected.
+   ===================================== */
+
+/* Inline logo, smaller than the Unlock hero-mark (48px vs 96px). */
+.wizard-step__logo {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--r-2);
+  background: var(--surface) center/108% no-repeat url("/daisy-logo.png");
+  border: 1px solid var(--line);
+  image-rendering: pixelated;
+  flex: 0 0 auto;
+  box-shadow: var(--shadow-raised);
+}
+
+/* Wizard pages override .hero's clamp(40px, 8vh, 96px) top margin; the top
+ * margin matches the horizontal padding (var(--space-32) = 32px). */
+.wizard-step.hero {
+  margin-top: var(--space-32);
+  margin-bottom: var(--space-32);
+}
+
+/* Tightened .surface padding and .h2 margins inside wizard steps. */
+.wizard-step .surface {
+  padding: var(--space-16);
+  margin-top: var(--space-12);
+}
+.wizard-step .surface .h2 {
+  margin-top: var(--space-16);
+  margin-bottom: var(--space-8);
+}
+
+/* Shrunken paragraph gaps and meta text spacing inside wizard surfaces. */
+.wizard-step .surface .meta {
+  margin-bottom: 6px;
+}
+.wizard-step .surface p.meta + p.meta {
+  margin-top: 0;
+}
+
+/* Shared markdown editor (Summary edit + Notes). The frame lives on
+   .md-editor; the ProseMirror content div's UA outline is removed. */
+.md-editor {
+  padding: var(--space-8) var(--space-12);
+  border: var(--rule);
+  border-radius: var(--r-2);
+  background: var(--surface);
+  cursor: text;
+}
+.md-editor:focus-within { outline: var(--ring); outline-offset: -1px; }
+.md-editor .ProseMirror { outline: none; font-size: var(--t-ui); line-height: var(--lh-text); }
+.md-editor .ProseMirror p { margin: 0 0 0.6em; }
+.md-editor .ProseMirror h1, .md-editor .ProseMirror h2, .md-editor .ProseMirror h3 { margin: 0.8em 0 0.4em; }
+
+/* Recording pulses are decorative — honor reduced motion. */
+/* ===== Increase Contrast =====
+   macOS Accessibility -> Display -> Increase contrast, and the same setting on
+   Windows and GNOME. Each role keeps its place in the ladder while the soft
+   roles lift.
+
+   macOS Reduce Transparency has no media query in WebKit, and WebKitGTK on
+   Linux blurs on its accelerated path alone: translucent chrome follows the
+   data-reduce-transparency attribute the native side sets. */
+@media (prefers-contrast: more) {
+  :root {
+    --glass-band:    var(--bg);
+    --glass-surface: var(--surface);
+    --glass-overlay: var(--overlay);
+    --glass-blur:    none;
+    --text-dim:    #525049;
+    --gold-text:   #6B4A00;
+    --record-text: #9C1A2B;
+    --success:     #115C27;
+    --danger:      #8F2F22;
+    --danger-hover:#73251B;
+    --record-fill: #AC1E31;   /* fill under --on-record */
+    --record-hover:#8F1928;
+    --line:        #8E887C;
+    --line-soft:   #DBD2C0;
+  }
+  :root[data-theme="dark"] {
+    --text-dim:    #B3AFA6;
+    --record-text: #FF8E99;
+    --danger:      #FF9184;
+    --danger-hover:#FFB3AA;
+    --record-fill: #AA2230;
+    --record-hover:#8F1928;
+    --line:        #6E6E73;
+    --line-soft:   #2C2C33;
+  }
+}
+
+/* Glass off, the two ways that are about translucency itself: Chromium answers
+   the media query; macOS answers only the app, which writes the attribute. */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --glass-band:    var(--bg);
+    --glass-surface: var(--surface);
+    --glass-overlay: var(--overlay);
+    --glass-blur:    none;
+  }
+}
+:root[data-reduce-transparency="1"] {
+  --glass-band:    var(--bg);
+  --glass-surface: var(--surface);
+  --glass-overlay: var(--overlay);
+  --glass-blur:    none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-state: 0s; --dur-move: 0s; --dur-live: 0s; }
+  .notebook__rec-dot,
+  .rail .nav-item--record__dot--live,
+  .mini__dot--rec { animation: none; }
+  /* Motion that carried meaning states it still: the sweep parks as a tint,
+     the indeterminate bar fills, the jump target stays highlighted. */
+  .btn--working::after { animation: none; transform: none; }
+  .bgfin-toast__bar--indeterminate { animation: none; width: 100%; }
+  .turn--found { animation: none; background: var(--gold-tint); }
+}
+
+/* ===== Tag chips =====
+   The chip tints itself from the tag's own hex. In dark the wash and ring step
+   back and the dot identifies the tag. */
+:root[data-theme="dark"] .tag-chip {
+  color: color-mix(in srgb, var(--tag-color, var(--gold)) 62%, var(--text));
+  background: color-mix(in srgb, var(--tag-color, var(--gold)) 7%, transparent);
+  border-color: color-mix(in srgb, var(--tag-color, var(--gold)) 16%, transparent);
+}
+:root[data-theme="dark"] .turn .turn-ts { color: var(--text-2); }
+:root[data-theme="dark"] .tag-chip__dot,
+:root[data-theme="dark"] .session-row__tagdot {
+  background: color-mix(in srgb, var(--tag-color, var(--gold)) 82%, var(--surface));
+}
+/* Both toggle states are restated for dark. */
+:root[data-theme="dark"] .tag-chip--off {
+  color: var(--text-dim);
+  background: transparent;
+  border-color: var(--line);
+}
+:root[data-theme="dark"] .tag-chip--on {
+  background: color-mix(in srgb, var(--tag-color, var(--gold)) 24%, transparent);
+  border-color: color-mix(in srgb, var(--tag-color, var(--gold)) 75%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tag-color, var(--gold)) 60%, transparent);
+}
+
+/* ===== Appearance picker (Settings → Display) ===== */
+.theme-cards { display: flex; gap: var(--space-16); flex-wrap: wrap; }
+.theme-card {
+  width: 148px; padding: 9px; text-align: left; cursor: pointer;
+  background: var(--raised); color: var(--text);
+  border: 1px solid var(--line); border-radius: var(--r-2);
+}
+.theme-card[aria-pressed="true"] {
+  border-color: var(--gold-text);
+  box-shadow: var(--halo);
+}
+.theme-card__prev {
+  display: flex; align-items: flex-end; gap: var(--space-4);
+  height: 54px; padding: 7px; margin-bottom: var(--space-8); border-radius: var(--r-1);
+}
+.theme-card__prev i { display: block; flex: 1; height: 5px; border-radius: var(--r-1); }
+.theme-card__prev--light { background: #F4EFE6; }
+.theme-card__prev--light i:nth-child(1) { background: #1A1015; }
+.theme-card__prev--light i:nth-child(2) { background: #F2A900; }
+.theme-card__prev--light i:nth-child(3) { background: #DBD2C0; }
+.theme-card__prev--dark { background: #0C0C0E; }
+.theme-card__prev--dark i:nth-child(1) { background: #F6F2EA; }
+.theme-card__prev--dark i:nth-child(2) { background: #F2A900; }
+.theme-card__prev--dark i:nth-child(3) { background: #2C2C33; }
+.theme-card__prev--system { background: linear-gradient(110deg, #F4EFE6 50%, #0C0C0E 50%); }
+.theme-card__prev--system i:nth-child(1) { background: #F2A900; }
+.theme-card__prev--system i:nth-child(2) { background: #948E82; }
+.theme-card__prev--system i:nth-child(3) { background: transparent; }
+.theme-card__name { display: block; font-size: var(--t-ui); font-weight: 600; }
+
+/* ===== Grouped settings =====
+   Related controls sit under a heading that says what the group is for. Label
+   and help on the left, the control on the right, one hairline per row. */
+/* What a container says while it holds nothing. One block, centred in the
+   space the content will take. */
+.empty {
+  max-width: 46ch; margin: var(--space-48) auto; padding: 0 var(--space-16);
+  display: flex; flex-direction: column; align-items: center; gap: var(--space-8);
+  text-align: center;
+}
+.empty--inset { margin: var(--space-16) auto; }
+.empty__title { margin: 0; font-size: var(--t-read); font-weight: 600; }
+.empty__body { margin: 0; font-size: var(--t-ui); color: var(--text-2); line-height: var(--lh-text); }
+.empty__action { margin-top: var(--space-8); }
+
+.set-group { max-width: 640px; margin-bottom: var(--space-48); }
+.set-group__title { font-size: var(--t-read); font-weight: 600; margin-bottom: 3px; }
+.set-group__hint { font-size: var(--t-ui); color: var(--text-2); line-height: var(--lh-text); margin: 0 0 var(--space-16); }
+.set-group__details { margin-top: var(--space-16); }
+.set-group__summary { cursor: pointer; font-weight: 600; font-size: var(--t-ui); }
+.set-group__scope {
+  font-size: var(--t-meta); letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--text-dim); margin-left: var(--space-8);
+}
+.set-row {
+  display: grid; grid-template-columns: minmax(220px, 1fr) auto; align-items: center;
+  gap: var(--space-16); padding: 13px 0; border-top: 1px solid var(--line);
+}
+/* A control too big to sit beside its label takes its own line. */
+.set-row--stack { grid-template-columns: 1fr; align-items: stretch; }
+.set-group .set-row:last-child { border-bottom: 1px solid var(--line); }
+.set-row__label { font-size: var(--t-ui); font-weight: 500; }
+.set-row__help { font-size: var(--t-ui); color: var(--text-2); line-height: var(--lh-text); margin: 3px 0 0; }
+
+.hotkey-field { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-4); }
+.hotkey-field__row { display: flex; align-items: center; gap: var(--space-8); }
+.hotkey-field__button { display: flex; align-items: center; gap: var(--space-4); min-width: 148px; justify-content: center; }
+.keycap {
+  border: 1px solid var(--line);
+  border-radius: var(--r-1);
+  background: var(--raised);
+  color: var(--text);
+  font-size: var(--t-meta);
+  font-weight: 600;
+  line-height: var(--lh-flush);
+  padding: var(--space-4);
+  min-width: 18px;
+  text-align: center;
+}
+
+.switch {
+  width: 42px; height: 24px; flex: 0 0 auto; padding: 0;
+  border: 0; border-radius: var(--r-full); background: var(--switch-off);
+  position: relative; cursor: pointer; transition: background var(--dur-state) var(--ease);
+}
+.switch::after {
+  content: ""; position: absolute; top: 3px; left: 3px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--raised); transition: transform var(--dur-move) var(--ease);
+}
+.switch[aria-checked="true"] { background: var(--gold); }
+.switch[aria-checked="true"]::after { transform: translateX(18px); background: var(--on-gold); }
+.switch:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* ===== Menu =====
+   One popup surface for every menu in the app: the Action flyout, a row's
+   overflow, and the transcript context menu. The chrome is here; where the
+   menu sits is the caller's placement class (.action-menu__pop anchored to
+   its button, .row-menu__pop to its kebab, .ctx-menu to the cursor). */
+.menu {
+  padding: var(--space-4);
+  border-radius: var(--r-2);
+  background: var(--glass-overlay);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-overlay);
+  display: flex;
+  flex-direction: column;
+}
+.menu__item {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  width: 100%;
+  text-align: left;
+  padding: var(--space-8) var(--space-12);
+  border: 0;
+  border-radius: var(--r-1);
+  background: none;
+  font: inherit;
+  font-size: var(--t-ui);
+  color: var(--text);
+  cursor: pointer;
+}
+.menu__item:hover:not(:disabled) { background: var(--gold-tint); }
+.menu__item:disabled { color: var(--text-dim); cursor: not-allowed; opacity: 0.6; }
+/* The one place a destructive action wears red before its confirm: named in
+   words, inside a menu the reader opened. */
+.menu__item--danger { color: var(--danger); }
+/* A line in a menu that reports. */
+.menu__item--note { color: var(--text-dim); cursor: default; }
+.menu__item--danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+}
+.menu__sep { height: 1px; background: var(--line); margin: var(--space-4) 6px; }
+
+/* Context menu placement: fixed to the viewport at the cursor. */
+.ctx-menu { position: fixed; z-index: var(--z-menu); min-width: 172px; }
+
+/* ===== Row overflow =====
+   The kebab that holds a row's secondary and destructive actions. */
+.row-menu { position: relative; flex: 0 0 auto; display: inline-flex; }
+.row-menu__kebab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-2);
+  background: transparent;
+  color: var(--text-dim);
+  font: inherit;
+  font-size: var(--t-read);
+  line-height: var(--lh-flush);
+  cursor: pointer;
+  transition: background var(--dur-state) var(--ease), color var(--dur-state) var(--ease);
+}
+.row-menu__kebab:hover:not(:disabled) { background: var(--gold-tint); color: var(--text); }
+.row-menu__kebab[aria-expanded="true"] { background: var(--gold-tint); color: var(--text); }
+.row-menu__kebab:disabled { opacity: 0.4; cursor: not-allowed; }
+.row-menu__pop {
+  position: absolute;
+  z-index: var(--z-dropdown);
+  min-width: 172px;
+  right: 0;
+  top: calc(100% + var(--space-4));
+}
+.row-menu__pop--up { top: auto; bottom: calc(100% + var(--space-4)); }
+
+/* Toggle plus label in a centred column; not the .set-row grid. */
+.about-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  margin-top: 14px;
+  font-size: var(--t-ui);
+  color: var(--text-2);
+}
+
+/* ===== Top banner =====
+   Full-width notice above the workspace. Gold and danger fills take their
+   own ink. */
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 14px;
+  font-size: var(--t-ui);
+  border-bottom: 1px solid var(--line);
+  background: var(--gold-tint);
+  color: var(--text);
+}
+.banner__text { flex: 1; min-width: 0; }
+.banner--warning {
+  background: var(--gold);
+  color: var(--on-gold);
+  border-bottom-color: var(--gold-text);
+}
+.banner--danger {
+  background: color-mix(in srgb, var(--danger) 16%, var(--surface));
+  color: var(--text);
+  border-bottom-color: color-mix(in srgb, var(--danger) 40%, transparent);
+}
+/* A banner inside a pane: it closes its
+   border and rounds, and keeps every colour of the variant beside it. */
+.banner--inline {
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+}
+.banner--warning.banner--inline { border-color: var(--gold-text); }
+.banner-dismiss {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 2px 6px;
+  font: inherit;
+  font-size: var(--t-ui);
+  line-height: var(--lh-flush);
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.7;
+}
+.banner-dismiss:hover { opacity: 1; }
+
+/* ===== Find in page ===== */
+.findbar {
+  position: absolute;
+  top: 8px;
+  right: 16px;
+  z-index: var(--z-chrome);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: 5px 6px;
+  border-radius: var(--r-2);
+  background: var(--overlay);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-overlay);
+}
+.findbar__input {
+  appearance: none;
+  width: 190px;
+  padding: 5px 9px;
+  border-radius: var(--r-2);
+  border: 1px solid var(--line);
+  background: var(--raised);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-ui);
+}
+.findbar__input::placeholder { color: var(--text-dim); }
+.findbar__input:focus {
+  outline: var(--ring);
+  outline-offset: -1px;
+  border-color: var(--gold-text);
+}
+.findbar__btn {
+  appearance: none;
+  min-width: 26px;
+  padding: 4px 6px;
+  border-radius: var(--r-2);
+  border: 1px solid transparent;
+  background: none;
+  color: var(--text-dim);
+  font: inherit;
+  font-size: var(--t-small);
+  line-height: var(--lh-flush);
+  cursor: pointer;
+}
+.findbar__btn:hover { background: var(--gold-tint); color: var(--text); }
+
+/* Search-result flash; applied by classList after a jump. */
+.md-found {
+  border-radius: var(--r-1);
+  background: var(--gold-tint);
+  box-shadow: var(--halo);
+  transition: background var(--dur-move) var(--ease), box-shadow var(--dur-move) var(--ease);
+}
+
+/* ===== Live-capture notices ===== */
+.live-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 0 10px;
+  padding: 9px 12px;
+  border-radius: var(--r-2);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--text-2);
+  font-size: var(--t-small);
+  line-height: var(--lh-text);
+}
+.live-note__close {
+  appearance: none;
+  flex: 0 0 auto;
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  color: var(--text-dim);
+  font: inherit;
+  font-size: var(--t-read);
+  line-height: var(--lh-flush);
+  cursor: pointer;
+}
+.live-note__close:hover { color: var(--text); }
+
+.live-off-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-8);
+  margin: auto;
+  padding: 22px 26px;
+  border-radius: var(--bubble-radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  text-align: center;
+}
+/* Banner position above the live transcript turns. */
+.live-off-card--banner { margin: 0 auto 12px; }
+.live-off-card__title { margin: 0; font-weight: 600; font-size: var(--t-ui); color: var(--text); }
+.live-off-card__body { margin: 0; max-width: 42ch; font-size: var(--t-ui); color: var(--text-2); }
+
+/* ===== List-row toggles =====
+   Settings sections, EULA doc tabs, prompt options and vault cards: a row
+   that is either selected or not. `.is-on` carries the selected state. */
+.settings-tab,
+.option-row {
+  appearance: none;
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  border-radius: var(--r-2);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--t-ui);
+  cursor: pointer;
+}
+.settings-tab { padding: 7px 10px; margin-bottom: 2px; }
+.option-row   { padding: 6px 8px;  margin-bottom: var(--space-4); }
+.settings-tab:hover,
+.option-row:hover { background: var(--gold-tint); }
+.settings-tab.is-on,
+.option-row.is-on { background: var(--gold-selected); color: var(--text); font-weight: 600; }
+
+/* The row that makes a new record. */
+.option-row--new { border: 1px dashed var(--line); }
+
+.doc-tab {
+  appearance: none;
+  padding: var(--space-8) var(--space-16);
+  border-radius: var(--r-2);
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+.doc-tab.is-on { border-color: var(--gold); background: var(--gold-tint); font-weight: 600; }
+.doc-tab:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* Calendar event row; --live marks a meeting happening now. */
+.event-card {
+  appearance: none;
+  display: grid;
+  grid-template-columns: 6px 110px 1fr auto;
+  gap: var(--space-12);
+  align-items: center;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  border-bottom: 1px solid var(--line-soft);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  font-size: var(--t-ui);
+  cursor: pointer;
+}
+.event-card--live { background: var(--gold-tint); }
+/* The calendar an event came from, named by its colour. */
+/* The row's left edge in the app's own accent: which calendar an event came
+   from is named in words on the row below its title. */
+.event-card__stripe { align-self: stretch; border-radius: var(--r-1); background: var(--gold); }
+.event-card__main { min-width: 0; overflow: hidden; }
+.event-card__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.event-card__from { font-size: var(--t-meta); margin-top: var(--space-4); }
+.event-card__when { font-size: var(--t-meta); color: var(--text-dim); }
+.event-card__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* A meeting under way right now. */
+.event-card__now {
+  flex: 0 0 auto;
+  padding: 0 var(--space-8);
+  border-radius: var(--r-full);
+  font-size: var(--t-meta);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--surface);
+  background: var(--danger);
+}
+.event-card__dismiss {
+  padding: var(--space-4) var(--space-8);
+  font-size: var(--t-meta);
+  color: var(--text-dim);
+  border: var(--rule);
+  border-radius: var(--r-1);
+  background: var(--surface);
+}
+
+/* What a route says across its full width, above its body. It pins under the
+   header band and the body scrolls past it; one wrapper holds both lines. */
+.page-notices {
+  position: sticky; top: var(--page-header-h); z-index: var(--z-raised);
+  background: var(--bg);
+}
+.page-notice { padding: var(--space-8) var(--space-12); border-bottom: var(--rule); }
+/* A notice carrying a backend message that arrives with its own line breaks. */
+.page-notice--pre { white-space: pre-wrap; }
+.event-card:hover { background: var(--gold-tint); }
+
+.chapter-row {
+  appearance: none;
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  width: 100%;
+  text-align: left;
+  padding: 4px 6px;
+  border-radius: var(--r-1);
+  border: 1px solid transparent;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--t-ui);
+  cursor: pointer;
+}
+.chapter-row:hover:not(:disabled) { background: var(--gold-tint); }
+.chapter-row:disabled { cursor: default; }
+
+/* Tag colour chip; the swatch itself is the tag's hue. */
+.color-swatch {
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: var(--r-2);
+  border: 1px solid var(--line);
+  background: var(--swatch, var(--gold));
+  cursor: pointer;
+}
+
+/* Marks a session recovered from an interrupted capture. */
+.session-row__badge {
+  margin-left: var(--space-4);
+  padding: 1px 4px;
+  border-radius: var(--r-1);
+  font-size: var(--t-meta);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: var(--gold-text);
+  background: var(--gold-tint);
+}
+
+.toast-dismiss {
+  appearance: none;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  font: inherit;
+  font-size: var(--t-read);
+  line-height: var(--lh-flush);
+  cursor: pointer;
+}
+.toast-dismiss:hover { color: var(--text); }
+
+/* Inline help under a control. */
+.hint { margin: 4px 0 0; font-size: var(--t-small); color: var(--text-dim); }
+
+/* About page mark. Dark takes the gold-ink trace. */
+.about-mark {
+  width: 128px;
+  height: 128px;
+  border-radius: var(--r-4);
+  background: center/contain no-repeat url("/daisy-logo.png");
+  box-shadow: var(--shadow-raised);
+}
+:root[data-theme="dark"] .about-mark {
+  background-image: url("/daisy-logo-gold.png");
+}
+
+/* Providers → Advanced → transcription tuning groups. */
+.tune-panel { display: flex; flex-direction: column; gap: var(--space-4); margin-top: 10px; }
+.tune-panel__engine { margin: 14px 0 4px; font-size: var(--t-ui); font-weight: 600; }
+.tune-panel input[type="number"], .tune-panel input[type="text"] { width: 90px; }
+.vp-tuning { margin-top: var(--space-16); }
+.vp-tuning + .vp-tuning { margin-top: 20px; }
+.vp-tuning__label { font-size: var(--t-ui); display: block; margin-bottom: 6px; }
+.vp-tuning__row { display: flex; align-items: center; gap: 10px; max-width: 420px; }
+.vp-tuning__row input[type="range"] { flex: 1; }
+.vp-tuning__end { font-size: var(--t-small); }
+.vp-tuning__value {
+  font-size: var(--t-small); width: 28px; text-align: right;
+  color: var(--text-dim); font-variant-numeric: tabular-nums;
+}
+.vp-tuning__help { font-size: var(--t-small); margin-top: 6px; max-width: 520px; }
+.asr-model__active { font-size: var(--t-small); font-weight: 600; }
+.model-group-h { font-size: var(--t-small); font-weight: 600; color: var(--text-dim); margin: 8px 0 6px; }
+.gold-link { color: var(--gold-text); }
+
+/* ===== Records in a settings section =====
+ * A section that manages saved records draws them one of two ways: a table
+ * when the columns carry meaning, a row list when the record is a title and
+ * a line of detail. Both end in the same actions slot. */
+
+.data-table { width: 100%; border-collapse: collapse; font-size: var(--t-ui); }
+.data-table thead tr { text-align: left; color: var(--text-dim); border-bottom: var(--rule); }
+.data-table tbody tr { border-bottom: 1px solid var(--line-soft); }
+.data-table th, .data-table td { padding: var(--space-8) var(--space-12); }
+/* The first and last columns sit flush with the section's text column. */
+.data-table th:first-child, .data-table td:first-child { padding-left: 0; }
+.data-table th:last-child, .data-table td:last-child { padding-right: 0; }
+/* Rows whose cells differ in height read from the top edge. */
+.data-table--top td { vertical-align: top; }
+.data-table__dim { color: var(--text-dim); }
+/* A row whose detail is expanded below it: the two read as one. */
+.data-table__row--open { border-bottom: none; }
+.data-table__actions { text-align: right; }
+/* When a row happened: machine output, so mono and tabular, and never wrapped. */
+.data-table__when {
+  font-family: var(--font-mono);
+  font-size: var(--t-meta);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.data-table th { white-space: nowrap; }
+/* A link inside a row reads as the row's text; the underline arrives on hover. */
+.data-table .btn-link { color: var(--text); text-decoration: none; }
+.data-table .btn-link:hover:not(:disabled) { color: var(--gold-text); text-decoration: underline; }
+/* The steps a run took, under the row that ran them. */
+.run-steps { padding: 0 var(--space-12) var(--space-8); }
+.run-step { display: flex; gap: var(--space-8); align-items: baseline; padding: var(--space-4) 0; }
+.run-step__n, .run-step__ms {
+  font-family: var(--font-mono); font-size: var(--t-small); color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+.run-step__label { flex: 1; }
+/* Runs waiting to start, above the table of runs that finished. */
+.run-queue { margin-top: var(--space-16); }
+.run-queue__row { display: flex; align-items: center; gap: var(--space-8); padding: var(--space-4) 0; }
+/* The next page of a list, under the list it extends. */
+.load-more { margin-top: var(--space-12); }
+.data-table__url {
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: var(--t-meta);
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.list-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  padding: var(--space-16) 0;
+  border-bottom: var(--rule);
+}
+.list-row__main { flex: 1; min-width: 0; }
+.list-row__name { display: flex; align-items: center; gap: var(--space-8); font-weight: 600; }
+/* The row's own block stacks. */
+.list-row--stack { display: block; }
+/* A record already configured and in use. */
+.list-row__on { color: var(--success); font-weight: 700; }
+/* A qualifier the record's name carries at meta weight. */
+.list-row__aside { font-size: var(--t-meta); font-weight: 400; }
+/* A record that stays listed while switched off. */
+.list-row__off { font-size: var(--t-meta); border: var(--rule); border-radius: var(--r-1); padding: 0 var(--space-4); }
+
+/* An editor opened in place inside a list of records. */
+.editor-card {
+  padding: var(--space-24) var(--space-16);
+  border-bottom: var(--rule);
+  background: var(--gold-tint);
+}
+.editor-card__title { font-weight: 600; margin-bottom: var(--space-8); }
+
+/* A box around a cluster of controls or a rendered document inside a section. */
+.inset-box { padding: var(--space-12); border: var(--rule); border-radius: var(--r-2); }
+/* Dashed: the box holds something provisional — a record being drafted, or a
+   place waiting to be filled. */
+.inset-box--dashed { border-style: dashed; }
+.inset-box--dim { font-size: var(--t-ui); color: var(--text-dim); }
+
+/* A calendar attendee the session has not matched to a voice yet. */
+.invitee-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-4) var(--space-8);
+  border: 1px dashed var(--line);
+  border-radius: var(--r-3); /* panel corner */
+}
+.invitee-row__name { flex: 1; font-size: var(--t-ui); color: var(--text-dim); }
+
+/* A control the app leaves reachable while nothing acts on it. */
+.is-muted { opacity: 0.5; }
+
+/* Step a value up and down: one control. The value it
+   reports sits between the two steps that change it. */
+.stepper {
+  display: inline-flex;
+  align-items: stretch;
+  border: var(--rule);
+  border-radius: var(--r-2);
+  background: var(--surface);
+  overflow: hidden;
+}
+.stepper__btn {
+  appearance: none;
+  min-width: 34px;
+  height: var(--control-h);
+  padding: 0 var(--space-8);
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.stepper__btn:hover:not(:disabled) { background: var(--gold-tint); }
+.stepper__btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.stepper__value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  border-left: var(--rule);
+  border-right: var(--rule);
+  font-variant-numeric: tabular-nums;
+}
+/* The stepper, and the way back to the default beside it. */
+.zoom-control { display: flex; align-items: center; gap: var(--space-12); }
+
+/* A control with its own label above it, outside a .set-row. */
+.field { margin-top: var(--space-16); }
+/* Every form control in a column measures the same. */
+.field__control { display: block; width: 100%; max-width: 640px; }
+
+/* The label above a field standing outside a .set-row. */
+.field-label {
+  display: block;
+  font-size: var(--t-ui);
+  color: var(--text-dim);
+  margin-bottom: var(--space-4);
+}
+.field-label--small { font-size: var(--t-small); }
+/* A label that names a block the field explains below it. */
+.field-label--strong { font-size: var(--t-small); font-weight: 600; }
+
+/* Determinate progress for a job the user started. */
+.progress { height: 8px; background: var(--line); border-radius: var(--r-1); overflow: hidden; }
+.progress__fill { height: 100%; background: var(--gold-text); transition: width var(--dur-move) var(--ease); }
+
+/* A scrolling pane holding a legal document. */
+.doc-pane {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-16) var(--space-24);
+  border: var(--rule);
+  border-radius: var(--r-2);
+}
+
+/* The sentence a setup step opens with. */
+.lede-text { font-size: var(--t-read); line-height: var(--lh-text); }
+
+/* Where setup says it is, over the step. */
+.wizard-step__count { color: var(--text-dim); }
+
+/* One line of the setup plan: what it is, what Daisy picked, where its
+   download stands. */
+.plan-row {
+  display: grid;
+  grid-template-columns: 140px 1fr auto;
+  gap: var(--space-12);
+  align-items: baseline;
+  padding: var(--space-8) 0;
+  border-bottom: var(--rule);
+}
+.plan-row__what { font-size: var(--t-ui); color: var(--text-dim); }
+.plan-row__detail { font-size: var(--t-ui); line-height: var(--lh-text); }
+.plan-row__status { font-size: var(--t-meta); color: var(--text-dim); }
+
+/* One speech model in the list: what it is, and whether it is the one in use. */
+.asr-model {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-4) var(--space-8);
+  border: var(--rule);
+  border-radius: var(--r-3); /* panel corner */
+}
+.asr-model.is-on { background: var(--gold-selected); }
+
+/* One turn of the in-call chat. The user's own sits right, on the accent. */
+.chat-bubble {
+  align-self: flex-start;
+  max-width: 85%;
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--r-2);
+  font-size: var(--t-ui);
+  background: var(--raised);
+  color: var(--text);
+}
+.chat-bubble--me { align-self: flex-end; background: var(--gold); color: var(--on-gold); }
+
+/* A command the user is meant to copy whole. */
+.command-block {
+  max-width: 560px;
+  margin: 0;
+  padding: var(--space-8) var(--space-12);
+  font-size: var(--t-small);
+  border: var(--rule);
+  border-radius: var(--r-2);
+  overflow-x: auto;
+  user-select: all;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* Marks a build that never went out as a release. */
+.build-warning {
+  margin-top: var(--space-16);
+  color: var(--gold-text);
+  font-size: var(--t-ui);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: center;
+}
+/* Which build is running, in the corner of the unlock screen. */
+.build-stamp {
+  position: fixed;
+  right: var(--space-12);
+  bottom: var(--space-8);
+  font-family: var(--font-mono);
+  font-size: var(--t-meta);
+  color: var(--text-dim);
+}
+/* What went wrong on a gate screen, at the weight the gate reads in. */
+.gate-error { margin-top: var(--space-12); font-weight: 600; }
+
+/* How loud the mic is right now; the bar warms as it approaches clipping. */
+.mic-level {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: middle;
+  flex-shrink: 0;
+  background: var(--line);
+  border-radius: var(--r-full);
+}
+.mic-level__fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--r-full);
+  background: var(--success);
+  transition: width var(--dur-live) linear;
+}
+.mic-level[data-level="warn"] .mic-level__fill { background: var(--gold-hover); }
+.mic-level[data-level="hot"] .mic-level__fill { background: var(--danger); }
+
+/* A screen that stands between launch and the app: terms, a licence, a
+   locked profile. One column, its own ground. */
+.gate-page {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  height: 100vh;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--space-48) var(--space-24);
+  background: var(--bg);
+}
+
+/* The box the user agrees in; it fills once they do. */
+.consent-box {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-12);
+  padding: var(--space-12) var(--space-16);
+  margin-top: var(--space-16);
+  border: var(--rule);
+  border-radius: var(--r-2);
+  cursor: pointer;
+}
+.consent-box.is-on { border-color: var(--gold); background: var(--gold-tint); }
+
+/* A panel a route raises over its own body: filters, an answer, a result set.
+   Flat against the page — .surface is the raised card. */
+.panel-card {
+  padding: var(--space-16);
+  border: var(--rule);
+  border-radius: var(--r-2);
+  background: var(--surface);
+}
+
+/* The model's answer, read at body size with its own line breaks kept. */
+.qa-answer { font-size: var(--t-read); line-height: var(--lh-text); white-space: pre-wrap; }
+
+/* One meeting a search matched: when, what, and where the words were. */
+.search-hit {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: var(--space-12);
+  padding: var(--space-8) var(--space-12);
+  border-bottom: var(--rule);
+  cursor: pointer;
+}
+/* The one line of query syntax, under the box it applies to. */
+.search-syntax { margin-top: var(--space-4); font-size: var(--t-meta); }
+
+.search-hit__date {
+  font-family: var(--font-mono);
+  font-size: var(--t-small);
+  color: var(--gold-text);
+  padding-top: var(--space-4);
+}
+.search-hit__title { font-size: var(--t-ui); font-weight: 600; line-height: var(--lh-tight); }
+.search-hit__snippet {
+  font-size: var(--t-ui);
+  color: var(--text-dim);
+  line-height: var(--lh-text);
+  margin-top: var(--space-4);
+}
+
+/* The colour a tag is recognised by, at list size. */
+.tag-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  border-radius: var(--r-1);
+  background: var(--tag-color, var(--gold));
+}
+
+/* The colour picker a calendar row opens under its swatch. */
+.swatch-pop {
+  position: absolute;
+  top: 36px;
+  left: 0;
+  z-index: var(--z-dropdown);
+  min-width: 0;
+  padding: var(--space-8);
+}
+
+/* The list of tags a section is edited one at a time from. */
+.tags-column { width: 220px; padding-right: var(--space-16); border-right: var(--rule); }
+
+/* Confirms a save in place, next to the control that saved. */
+.saved-flash {
+  margin: var(--space-8) 0 0;
+  padding: var(--space-4) var(--space-8);
+  font-size: var(--t-ui);
+  font-weight: 600;
+  color: var(--gold-text);
+  background: var(--surface);
+  border: var(--rule);
+  border-left: 3px solid var(--gold-text);
+  border-radius: var(--r-1);
+}
+
+/* The colophon closing the About page. */
+.about-footer {
+  margin-top: var(--space-32);
+  padding-top: var(--space-24);
+  border-top: var(--rule);
+  font-size: var(--t-ui);
+  line-height: var(--lh-text);
+  text-align: center;
+}
+
+/* The colophon's disclosure reads left-aligned under the centred lines. */
+.about-footer .set-group__details { text-align: left; }
+
+/* Label and value, read as a pair, in a table of facts. */
+.fact-row__label { color: var(--text-dim); vertical-align: top; white-space: nowrap; }
+.fact-row__value { word-break: break-all; }
+
+.meta--success { color: var(--success); }

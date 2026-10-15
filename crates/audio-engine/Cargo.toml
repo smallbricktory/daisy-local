@@ -1,0 +1,84 @@
+[package]
+name = "audio-engine"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+build = "build.rs"
+
+[lib]
+path = "src/lib.rs"
+
+[[example]]
+name = "wasapi_smoke"
+path = "../../diagnostics/audio/wasapi_smoke.rs"
+
+[[example]]
+name = "wasapi_dual_probe"
+path = "../../diagnostics/audio/wasapi_dual_probe.rs"
+
+[[example]]
+name = "wasapi_comms_probe"
+path = "../../diagnostics/audio/wasapi_comms_probe.rs"
+
+[[example]]
+name = "fs_probe"
+path = "../../diagnostics/audio/fs_probe.rs"
+
+[dependencies]
+thiserror.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+hound.workspace = true
+log.workspace = true
+bytemuck = "1"
+tokio.workspace = true
+# Sample-rate conversion to 16 kHz mono.
+rubato = "0.16"
+# FFT cross-correlation for the lag search in `correlation`.
+rustfft.workspace = true
+
+# Linux backend: PipeWire.
+[target.'cfg(target_os = "linux")'.dependencies]
+pipewire.workspace = true
+libc = "0.2"
+
+# Windows backend: WASAPI via windows-rs.
+[target.'cfg(target_os = "windows")'.dependencies]
+windows = { version = "0.59", features = [
+  "Win32_Foundation",
+  "Win32_Media_Audio",
+  "Win32_Media_Audio_Endpoints",
+  "Win32_Media_KernelStreaming",
+  "Win32_Media_Multimedia",
+  "Win32_System_Com",
+  "Win32_System_Com_StructuredStorage",
+  "Win32_System_Diagnostics_ToolHelp",
+  "Win32_System_Performance",
+  "Win32_System_Threading",
+  "Win32_System_Variant",
+  "Win32_UI_Shell_PropertiesSystem",
+  "Win32_Devices_FunctionDiscovery",
+  "Win32_Devices_Properties",
+] }
+windows-core = "0.59"
+
+# macOS backend: a Swift shim (Core Audio process tap + VoiceProcessingIO)
+# delivers device-rate f32 PCM.
+[target.'cfg(target_os = "macos")'.dependencies]
+libc = "0.2"
+
+[dev-dependencies]
+tempfile.workspace = true
+env_logger.workspace = true
+chrono.workspace = true
+syncsafe = { path = "../syncsafe" }
+
+[target.'cfg(target_os = "windows")'.dev-dependencies]
+windows = { version = "0.59", features = [
+  "Win32_Foundation",
+  "Win32_Security",
+  "Win32_Storage_FileSystem",
+  "Win32_System_Memory",
+] }

@@ -1,0 +1,132 @@
+[package]
+name = "tauri-app"
+version = "1.3.4"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[lib]
+name = "tauri_app_core"
+path = "src/lib.rs"
+
+[[bin]]
+name = "daisy-app"
+path = "src/main.rs"
+
+[[example]]
+name = "clip_replay"
+path = "../../diagnostics/asr/clip_replay.rs"
+
+[[example]]
+name = "stop_replay"
+path = "../../diagnostics/stop/stop_replay.rs"
+
+[build-dependencies]
+tauri-build.workspace = true
+
+[dependencies]
+recording = { path = "../recording" }
+syncsafe = { path = "../syncsafe" }
+system-sleep = { path = "../system-sleep" }
+summarize = { path = "../summarize" }
+daisy-llm-protocol = { path = "../daisy-llm-protocol" }
+transcript = { path = "../transcript" }
+providers-http = { path = "../providers-http" }
+providers-local = { path = "../providers-local" }
+providers-realtime = { path = "../providers-realtime" }
+audio-engine = { path = "../audio-engine" }
+embeddings = { path = "../embeddings" }
+voiceprints = { path = "../voiceprints" }
+vault = { path = "../vault" }
+license = { path = "../license" }
+uuid.workspace = true
+zeroize.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+log.workspace = true
+fern.workspace = true
+chrono.workspace = true
+whisper-rs = { workspace = true }
+directories.workspace = true
+rayon.workspace = true
+tauri.workspace = true
+tauri-plugin-dialog.workspace = true
+tauri-plugin-global-shortcut.workspace = true
+tokio.workspace = true
+walkdir.workspace = true
+reqwest.workspace = true
+hound.workspace = true
+sysinfo = "0.33"
+base64.workspace = true
+ed25519-dalek.workspace = true
+x25519-dalek.workspace = true
+rcgen.workspace = true
+hkdf.workspace = true
+aes-gcm.workspace = true
+ble = { path = "../ble" }
+hmac.workspace = true
+subtle.workspace = true
+if-addrs.workspace = true
+mdns-sd.workspace = true
+rand.workspace = true
+sha2.workspace = true
+axum.workspace = true
+rustls.workspace = true
+tokio-rustls.workspace = true
+hyper.workspace = true
+http-body-util.workspace = true
+hyper-util.workspace = true
+futures-util.workspace = true
+tauri-plugin-clipboard-manager = "2.3.2"
+# UI-test harness plugins; compiled only with `--features ui-test`.
+tauri-plugin-wdio = { version = "1.3", optional = true }
+tauri-plugin-wdio-webdriver = { version = "1.3", optional = true }
+# Native "already running" dialog for the single-instance guard.
+rfd = { version = "0.16", default-features = false }
+
+# Linux-only: webkit2gtk settings enable getUserMedia and grant the
+# UserMediaPermissionRequest for the in-app mic-level meters.
+[target.'cfg(target_os = "linux")'.dependencies]
+webkit2gtk = "2.0"
+# Used by telemetry.rs sysconf calls (_SC_CLK_TCK, _SC_PAGESIZE) for CPU%
+# computation from /proc/self/stat.
+libc = "0.2"
+
+# perf.rs and hardware.rs read host memory, machine name and power-source info.
+[target.'cfg(target_os = "macos")'.dependencies]
+libc = "0.2"
+core-foundation = "0.10"
+# hardware::reduce_transparency() reads NSWorkspace accessibility display options.
+objc2-app-kit = { version = "0.3", default-features = false, features = ["std", "NSAccessibility", "NSWorkspace"] }
+
+# hardware::has_battery() uses GetSystemPowerStatus to detect laptops.
+[target.'cfg(target_os = "windows")'.dependencies]
+windows = { version = "0.59", features = ["Win32_Foundation", "Win32_System_Power"] }
+# The WebView2 bindings wry uses; grants the webview's own microphone requests.
+webview2-com = "0.38"
+# Direct MachineGuid read for the machine-mode vault key.
+winreg = "0.55"
+
+[features]
+# Release builds serve the embedded frontendDist via the `tauri://` scheme.
+custom-protocol = ["tauri/custom-protocol"]
+# In-app WebDriver server + execute/mock bridge for the e2e suite. Never
+# enabled for shipping builds.
+ui-test = ["dep:tauri-plugin-wdio", "dep:tauri-plugin-wdio-webdriver", "license/ui-test"]
+# Licensing against the public test stack (test key + test server). Never
+# enabled for shipping builds.
+license-test = ["license/license-test"]
+# Whisper GPU/BLAS backends are per-platform target dependencies in
+# providers-local/Cargo.toml; see that file for the build-time requirements.
+
+[dev-dependencies]
+# The integration tests drive the first-run commands, which read the
+# per-machine config directory; `ui-test` makes DAISY_CONFIG_DIR redirect it.
+license = { path = "../license", features = ["ui-test"] }
+# `tauri::test::mock_app` provides a runtime for commands that take an `AppHandle`.
+tauri = { workspace = true, features = ["test"] }
+tempfile.workspace = true
+env_logger.workspace = true
+mockito.workspace = true
