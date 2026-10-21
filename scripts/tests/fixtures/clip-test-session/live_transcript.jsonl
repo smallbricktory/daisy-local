@@ -1,0 +1,4 @@
+{"track":"system","start_ms":500,"end_ms":900,"text":"Northwind","final":false,"received_at_unix":1001,"received_at_ms":1001400,"engine":"nemotron","model":"Nemotron Streaming 0.6B","kind":"interim"}
+{"track":"system","start_ms":500,"end_ms":1900,"text":"Northwind Logistics ships.","final":true,"received_at_unix":1003,"received_at_ms":1003000,"engine":"nemotron","model":"Nemotron Streaming 0.6B","kind":"final"}
+{"track":"mic","start_ms":3000,"end_ms":3400,"text":"Uh, okay.","final":true,"received_at_unix":1004,"received_at_ms":1004100,"engine":"speechanalyzer","model":"Apple SpeechAnalyzer","kind":"final"}
+{"track":"system","start_ms":10100,"end_ms":12000,"text":"the Borealis order, um, on Friday.","final":true,"received_at_unix":1022,"received_at_ms":1022000,"engine":"nemotron","model":"Nemotron Streaming 0.6B","kind":"final"}

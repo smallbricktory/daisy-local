@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "session_id": "daisy-1700000000",
+  "provider": "lmstudio",
+  "model": "gemma-4-e2b",
+  "generated_at_unix_seconds": 1700000600,
+  "source_inputs_hash": "fnv64:0123456789abcdef",
+  "structured": {
+    "tldr": "The team agreed to ship the tide-chart widget behind a flag and to move the Friday review to Thursday.",
+    "action_items": [
+      { "text": "Merge the parser branch", "owner": "Sam", "due": "Thursday" },
+      { "text": "Write the release note", "owner": "Priya" }
+    ],
+    "decisions": ["Ship behind a flag", "Review moves to Thursday"],
+    "open_questions": ["Who owns the on-call rota next month?"],
+    "key_topics": ["tide-chart widget", "release cadence"]
+  },
+  "markdown": "# Summary\n\nThe team agreed to ship the tide-chart widget behind a flag.\n",
+  "user_edited": false
+}

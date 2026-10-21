@@ -1,0 +1,18 @@
+{
+  "v": 2,
+  "device_id": "11111111111111111111111111111111",
+  "sessions": [
+    {
+      "id": "daisy-1700000000",
+      "inputs": {
+        "manifest": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+      },
+      "content": {
+        "manifest": "sha256:d0d7e95f0dec8200d7f449e33364762b805c0fba81a4f5237fdc60872b791a81"
+      },
+      "audio": "sha256:3e532a7ac2d6c85d2c24f519dbbff59dec35c2e8588a75621624ff3aa1c43fe3",
+      "artifacts": []
+    }
+  ],
+  "tombstones": []
+}

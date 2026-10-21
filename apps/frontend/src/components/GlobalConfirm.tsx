@@ -1,0 +1,29 @@
+// SPDX-License-Identifier: Elastic-2.0
+// Copyright (c) 2026 Apexis Solutions Inc. (dba Small Bricktory) — see LICENSE
+import { ConfirmDialog } from './ConfirmDialog';
+import { usePendingConfirm, resolvePending } from '../lib/confirm';
+
+/** Mounted once per webview that asks: App.tsx (every startup phase and the
+ *  main screen) and the mini window. Renders <ConfirmDialog/> when an imperative
+ *  `confirm()` / `alert()` call from lib/confirm has a pending promise. */
+export function GlobalConfirm() {
+  const pending = usePendingConfirm();
+  if (!pending) return null;
+  const { spec } = pending;
+  const hideCancel = spec.cancelLabel === '__hidden__';
+  return (
+    <ConfirmDialog
+      title={spec.title}
+      body={spec.body}
+      confirmLabel={spec.confirmLabel ?? 'OK'}
+      cancelLabel={hideCancel ? '' : spec.cancelLabel}
+      danger={spec.danger}
+      typedConfirm={spec.typedConfirm}
+      alternateLabel={spec.alternateLabel}
+      elevated
+      onCancel={() => resolvePending('cancel')}
+      onAlternate={() => resolvePending('alternate')}
+      onConfirm={() => resolvePending('confirm')}
+    />
+  );
+}

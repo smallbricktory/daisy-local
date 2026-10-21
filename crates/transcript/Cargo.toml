@@ -1,0 +1,33 @@
+[package]
+name = "transcript"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[[example]]
+name = "echo_probe"
+path = "../../diagnostics/transcript/echo_probe.rs"
+
+[[example]]
+name = "dup_probe"
+path = "../../diagnostics/transcript/dup_probe.rs"
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+hound.workspace = true
+log.workspace = true
+xcorr = { path = "../xcorr" }
+syncsafe = { path = "../syncsafe" }
+rayon.workspace = true
+
+[target.'cfg(target_os = "linux")'.dependencies]
+libc = "0.2"
+
+[target.'cfg(target_os = "windows")'.dependencies]
+windows = { version = "0.59", features = ["Win32_Foundation", "Win32_System_Threading"] }
+
+[dev-dependencies]
+tempfile.workspace = true

@@ -1,0 +1,75 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Daisy",
+  "version": "1.3.5",
+  "identifier": "ai.daisy.app",
+  "build": {
+    "beforeDevCommand": "pnpm --dir ../../apps/frontend dev",
+    "beforeBuildCommand": "",
+    "frontendDist": "../../apps/frontend/dist",
+    "devUrl": "http://localhost:5173"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Daisy",
+        "dragDropEnabled": false,
+        "width": 1100,
+        "height": 720,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; connect-src ipc: http://ipc.localhost; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'self' blob:; object-src 'none'; frame-src 'none'",
+      "devCsp": "default-src 'self'; connect-src ipc: http://ipc.localhost ws://localhost:5173 http://localhost:5173; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'self' blob:; object-src 'none'; frame-src 'none'"
+    }
+  },
+  "bundle": {
+    "publisher": "Small Bricktory",
+    "copyright": "© 2026 Apexis Solutions Inc. (dba Small Bricktory)",
+    "active": true,
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "targets": "all",
+    "externalBin": ["binaries/daisy-llm"],
+    "resources": {
+      "../../models/voiceprints/model.onnx": "models/voiceprints/model.onnx",
+      "../../models/voiceprints/segmentation-3.0.onnx": "models/voiceprints/segmentation-3.0.onnx",
+      "../../models/embeddings/model.onnx": "models/embeddings/model.onnx",
+      "../../models/embeddings/tokenizer.json": "models/embeddings/tokenizer.json",
+      "../../models/embeddings/config.json": "models/embeddings/config.json",
+      "../../models/nemotron3-diar/nemotron3_diar_fast32.onnx": "models/nemotron3-diar/nemotron3_diar_fast32.onnx",
+      "../../models/nemotron3-diar/learnable_sil_emb.bin": "models/nemotron3-diar/learnable_sil_emb.bin",
+      "../../models/nemotron3-diar/nemotron3_diar.json": "models/nemotron3-diar/nemotron3_diar.json",
+      "../../models/nemotron3-diar/NOTICE": "models/nemotron3-diar/NOTICE",
+      "../../models/nemotron3-diar/LICENSE-OpenMDW-1.1.txt": "models/nemotron3-diar/LICENSE-OpenMDW-1.1.txt",
+      "../../THIRD-PARTY-LICENSES.txt": "THIRD-PARTY-LICENSES.txt",
+      "../../LICENSE": "LICENSE"
+    },
+    "windows": {
+      "nsis": {
+        "installerIcon": "icons/icon.ico",
+        "installerHooks": "windows/installer-hooks.nsh",
+        "compression": "none",
+        "installMode": "currentUser",
+        "languages": [
+          "English"
+        ],
+        "displayLanguageSelector": false
+      }
+    },
+    "macOS": {
+      "minimumSystemVersion": "15.0",
+      "entitlements": "Daisy.entitlements"
+    },
+    "shortDescription": "Local-first meeting recorder, transcriber & summarizer",
+    "longDescription": "Daisy records your meetings, transcribes and diarizes them on-device, and writes AI summaries \u2014 local-first and private.",
+    "licenseFile": "../../LICENSE"
+  }
+}

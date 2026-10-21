@@ -1,0 +1,61 @@
+[
+  {
+    "type": "machine-learning-model",
+    "name": "nemotron-speech-streaming-en-0.6b-560ms-int8",
+    "version": "nvidia/nemotron-speech-streaming-en-0.6b@ac0580bb7d3d6e39c4361db6afe28db9211793e4, export script sherpa-onnx@415b8c2a",
+    "description": "NVIDIA Nemotron Speech Streaming 0.6B (English, 560 ms cache-aware RNNT), ONNX export with int8 encoder by Apexis Solutions Inc. using an adapted sherpa-onnx export script (Apache-2.0, Copyright 2026 Xiaomi Corp.). On-device ASR on Windows and Linux.",
+    "supplier": { "name": "NVIDIA Corporation" },
+    "licenses": [{ "license": { "name": "NVIDIA Open Model License", "url": "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-license/" } }],
+    "externalReferences": [
+      { "type": "website", "url": "https://huggingface.co/nvidia/nemotron-speech-streaming-en-0.6b" },
+      { "type": "distribution", "url": "https://github.com/smallbricktory/daisy-local/releases/tag/asr-nemotron-streaming-en-0.6b-560ms-int8-1" }
+    ]
+  },
+  {
+    "type": "machine-learning-model",
+    "name": "nemotron-3-diarization-fast32",
+    "version": "nvidia/Nemotron-3-Diarization@f667ed73aee57d40cc39428eb768b4fd87a0a29e, ga-2026-09-23, Daisy fast32 ONNX export",
+    "description": "NVIDIA Nemotron 3 Diarization, ONNX export of the fast32 streaming graph by Apexis Solutions Inc. with the weights unchanged. Live speaker names on Windows, macOS and Linux.",
+    "supplier": { "name": "NVIDIA Corporation" },
+    "licenses": [{ "license": { "name": "OpenMDW-1.1", "url": "https://openmdw.ai/license/" } }],
+    "externalReferences": [
+      { "type": "website", "url": "https://huggingface.co/nvidia/Nemotron-3-Diarization" },
+      { "type": "distribution", "url": "https://github.com/smallbricktory/daisy-local/releases/tag/diarizer-nemotron3-ga-2026-09-23-1" }
+    ]
+  },
+  {
+    "type": "machine-learning-model",
+    "name": "pyannote-segmentation-3.0",
+    "version": "speakrs-models ONNX export",
+    "description": "pyannote segmentation-3.0 speaker-segmentation network, exported to ONNX by avencera/speakrs-models. Speaker turn detection for diarization.",
+    "supplier": { "name": "pyannote" },
+    "licenses": [{ "license": { "id": "MIT" } }],
+    "externalReferences": [
+      { "type": "website", "url": "https://huggingface.co/pyannote/segmentation-3.0" },
+      { "type": "distribution", "url": "https://huggingface.co/avencera/speakrs-models" }
+    ]
+  },
+  {
+    "type": "machine-learning-model",
+    "name": "wespeaker-voxceleb-resnet34-LM",
+    "version": "hbredin ONNX copy",
+    "description": "WeSpeaker VoxCeleb ResNet34-LM speaker embedding. Voiceprint enrollment and matching.",
+    "supplier": { "name": "ChengDong Liang / WeSpeaker" },
+    "licenses": [{ "license": { "id": "Apache-2.0" } }],
+    "externalReferences": [
+      { "type": "website", "url": "https://huggingface.co/hbredin/wespeaker-voxceleb-resnet34-LM" }
+    ]
+  },
+  {
+    "type": "machine-learning-model",
+    "name": "granite-embedding-97m-multilingual-r2",
+    "version": "r2, Daisy g8m16 ONNX export",
+    "description": "IBM Granite 97M multilingual text embedding. Semantic search and Q&A retrieval.",
+    "supplier": { "name": "IBM" },
+    "licenses": [{ "license": { "id": "Apache-2.0" } }],
+    "externalReferences": [
+      { "type": "website", "url": "https://huggingface.co/ibm-granite/granite-embedding-97m-multilingual-r2" },
+      { "type": "distribution", "url": "https://github.com/smallbricktory/daisy-local/releases/tag/embeddings-granite-g8m16-1" }
+    ]
+  }
+]

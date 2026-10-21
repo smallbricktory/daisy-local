@@ -1,0 +1,29 @@
+[package]
+name = "summarize"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+daisy-llm-protocol = { path = "../daisy-llm-protocol" }
+# Worker spawn at normal priority.
+transcript = { path = "../transcript" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+log.workspace = true
+reqwest.workspace = true
+tokio.workspace = true
+sha2.workspace = true
+ed25519-dalek.workspace = true
+base64.workspace = true
+uuid.workspace = true
+unicode-normalization = "0.1"
+
+[[bin]]
+name = "fake-llm-worker"
+path = "src/bin/fake-llm-worker.rs"
+
+[dev-dependencies]
+mockito.workspace = true

@@ -1,0 +1,7 @@
+{
+  "$schema": "../../gen/schemas/desktop-schema.json",
+  "identifier": "ui-test",
+  "description": "WebDriver bridge for the e2e suite; compiled in only with --features ui-test.",
+  "windows": ["main", "mini", "reminder"],
+  "permissions": ["wdio:default", "wdio-webdriver:default", "core:window:allow-set-focus"]
+}
