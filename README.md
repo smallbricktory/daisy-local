@@ -16,7 +16,7 @@ Daisy records, transcribes, and summarizes your meetings with AI that
 runs on your own device. Your meetings never reach us. Your privacy,
 your control.
 
-[![Platforms](https://img.shields.io/badge/platforms-macOS%20%7C%20Windows%20%7C%20Linux%20%7C%20iPhone%20%7C%20iPad-F2A900?labelColor=1A1015)](https://www.daisylocal.app)
+[![Platforms](https://img.shields.io/badge/platforms-macOS%20%7C%20Windows%20%7C%20Linux%20%7C%20iPhone%20%7C%20iPad%20%7C%20Android-F2A900?labelColor=1A1015)](https://www.daisylocal.app)
 [![License](https://img.shields.io/badge/license-ELv2%20source--visible-F2A900?labelColor=1A1015)](LICENSE)
 [![AI](https://img.shields.io/badge/transcription%20%2B%20AI-on--device-F2A900?labelColor=1A1015)](#privacy-first)
 [![Website](https://img.shields.io/badge/daisylocal.app-download-F2A900?labelColor=1A1015)](https://www.daisylocal.app/#download)
@@ -55,8 +55,8 @@ computer.
   quietly from your computer. Nobody else listens in.
 - **Private voice profiles.** Name a voice once and Daisy remembers it,
   encrypted and kept on your computer.
-- **Private from phone to desk.** Meetings you record on iPhone or iPad
-  travel only to your own computer.
+- **Private from phone to desk.** Meetings you record on iPhone, iPad, or
+  Android travel only to your own computer.
 - **You decide what's shared.** Keep everything on your device, or
   choose a cloud AI when you want one.
 
@@ -104,8 +104,8 @@ straight from your calendar.
 <div align="center"><img src="docs/img/screenshot-calendar.png" alt="Calendar" width="720" /></div>
 
 <img src="docs/img/icons/sync.svg" width="17" align="top" alt="" /> **Your phone and computer, together.** Record on the go with
-Daisy for iPhone and iPad; the meeting arrives on your computer, ready
-to review.
+Daisy for iPhone, iPad, and Android; the meeting arrives on your
+computer, ready to review.
 
 <img src="docs/img/icons/import.svg" width="17" align="top" alt="" /> **Bring in any recording.** Voice memos and audio files get the
 same treatment.
@@ -117,7 +117,7 @@ and each project gets its own summary style.
 your computer.
 
 <img src="docs/img/icons/license.svg" width="17" align="top" alt="" /> **A license you own.** Free for 30 days. One license,
-3 devices.
+3 devices, across desktop and phone.
 
 ---
 
@@ -144,6 +144,10 @@ your computer.
 
 Free 30-day trial at **[daisylocal.app](https://www.daisylocal.app)**
 for Mac (Apple Silicon), Windows, and Linux.
+
+On your phone: [App Store](https://apps.apple.com/app/id6804380485)
+(iPhone and iPad) and [Google Play](https://play.google.com/store/apps/details?id=com.smallbricktory.daisy)
+(Android), each with a free 30-day trial.
 
 ---
 
@@ -213,7 +217,7 @@ if you pick a cloud AI. Audio never does. Read the
 
 This repository holds the **desktop app** (macOS, Windows, Linux) and
 is **source-visible**, so you can verify that audio never leaves your
-machine. Daisy for iPhone and iPad is closed source. Issues welcome;
+machine. Daisy for iPhone, iPad, and Android is closed source. Issues welcome;
 pull requests are not accepted (see [CONTRIBUTING.md](CONTRIBUTING.md)).
 
 Build it yourself ([`docs/BUILDING.md`](docs/BUILDING.md)):
@@ -306,5 +310,5 @@ be freely available for anyone to enjoy. That is why we exist.
 ---
 
 <div align="center">
-<sub>Local-first · macOS + Windows + Linux + iPhone + iPad · Built for people who want their meetings to stay theirs.</sub>
+<sub>Local-first · macOS + Windows + Linux + iPhone + iPad + Android · Built for people who want their meetings to stay theirs.</sub>
 </div>
