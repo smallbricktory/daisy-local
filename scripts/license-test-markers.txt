@@ -1,0 +1,7 @@
+# Release-binary license guard, read by scripts/check-no-license-test.sh and
+# scripts/build-release.ps1. `+` lines must appear in a shipping executable;
+# `-` lines must not.
++B0VAcPcVxjlEZHeeK1FsccGMo927fu9L5SPm0LQ1d9Q=
+-QvXRKCyutJyyIbA9V7YcQNRNlZgZKpBDsT47wjBV8sk=
+-smbr-daisy-web-test.vercel.app
+-6lrnqmlyu0.execute-api.ca-central-1.amazonaws.com

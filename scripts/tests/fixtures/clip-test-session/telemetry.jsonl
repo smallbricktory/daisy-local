@@ -1,0 +1,21 @@
+{"v":1,"wall_ms":999990,"kind":"header","app_version":"1.3.2-f","build_sha":"0000000","os":"linux","os_version":"Linux 24.04 Ubuntu","arch":"x86_64","cpu_model":"Example CPU 8000","logical_cores":16,"physical_cores":8,"session_id":"daisy-1000","session_start_wall_ms":999990,"live_mode":"realtime","engine":{"engine":"nemotron","model":"Nemotron Streaming 0.6B"},"fallbacks":[],"mic_device":"Desk Mic","system_device":"Speakers","sample_rate":16000}
+{"v":1,"wall_ms":1000000,"kind":"anchor","track":"system","audio_ms":0}
+{"v":1,"wall_ms":1000020,"kind":"anchor","track":"mic","audio_ms":20}
+{"v":1,"wall_ms":1001200,"kind":"decode","track":"system","engine":"nemotron","decoded_ms":1120,"step_ms":560,"cost_ms":[40],"backlog_ms":0}
+{"v":1,"wall_ms":1003000,"kind":"words","track":"system","engine":"nemotron","words":[["Northwind",500,900,1001400],["Logistics",900,1500,1001900],["ships.",1600,1900,null]]}
+{"v":1,"wall_ms":1003100,"kind":"decode","track":"system","engine":"nemotron","decoded_ms":2800,"step_ms":1120,"cost_ms":[60,50],"backlog_ms":300}
+{"v":1,"wall_ms":1004100,"kind":"result","track":"mic","engine":"speechanalyzer","audio_end_ms":3400,"fed_ms":4000,"final":true,"words":2}
+{"v":1,"wall_ms":1005000,"kind":"anchor","track":"system","audio_ms":5000}
+{"v":1,"wall_ms":1005000,"kind":"proc","cpu_pct":10.0,"rss_mb":800.0,"threads":40,"thread_cpu":[["daisy-live-pipe",8.0]]}
+{"v":1,"wall_ms":1010000,"kind":"proc","cpu_pct":20.0,"rss_mb":950.0,"threads":42,"thread_cpu":[["daisy-live-pipe",12.0],["tokio-runtime-w",1.0]]}
+{"v":1,"wall_ms":1020000,"kind":"anchor","track":"system","audio_ms":10000}
+{"v":1,"wall_ms":1022000,"kind":"words","track":"system","engine":"nemotron","words":[["the",10100,10300,1020800],["Borealis",10300,10900,1021500],["order",10900,11200,1021600]]}
+{"v":1,"wall_ms":1030000,"kind":"end","dropped":0}
+{"v":1,"wall_ms":2000000,"kind":"stage","stage":"finalizing"}
+{"v":1,"wall_ms":2000500,"kind":"stage","stage":"echo-cancelling"}
+{"v":1,"wall_ms":2001000,"kind":"stage","stage":"transcribing"}
+{"v":1,"wall_ms":2004000,"kind":"stage","stage":"deduping"}
+{"v":1,"wall_ms":2005000,"kind":"stage","stage":"summarizing"}
+{"v":1,"wall_ms":2009000,"kind":"stage","stage":"chaptering"}
+{"v":1,"wall_ms":2010000,"kind":"stage","stage":"compressing"}
+{"v":1,"wall_ms":2011000,"kind":"stage","stage":"done"}

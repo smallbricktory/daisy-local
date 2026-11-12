@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "generated_at_unix_seconds": 1700000600,
+  "turn_count": 12,
+  "summary": {
+    "tldr": "The team agreed to ship the tide-chart widget behind a flag and to move the Friday review to Thursday.",
+    "decisions": ["Ship behind a flag", "Review moves to Thursday"],
+    "action_items": [
+      { "task": "Merge the parser branch", "owner": "Sam" },
+      { "task": "Write the release note", "owner": "Priya" }
+    ],
+    "chapters": ["Widget scope", "Release cadence"]
+  },
+  "skipped": [{ "start_ms": 1800000, "end_ms": 1860000 }]
+}

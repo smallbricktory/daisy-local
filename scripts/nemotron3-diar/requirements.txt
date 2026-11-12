@@ -1,0 +1,14 @@
+# Direct pins for scripts/nemotron3-diar/export.py (Python 3.12).
+#
+# NeMo installs from main at a fixed commit. torch, onnx and numpy match
+# scripts/nemotron-export's lock. onnxruntime 1.24.2 is the runtime version the
+# app's `ort` 2.0.0-rc.12 links.
+#
+# export.py writes `pip freeze` beside its outputs as requirements.lock.txt.
+# Commit that file here after the first green export; later runs install it
+# with `pip install -r scripts/nemotron3-diar/requirements.lock.txt`.
+torch==2.14.1
+onnx==1.23.1
+onnxruntime==1.24.2
+numpy==2.4.6
+nemo_toolkit[asr] @ git+https://github.com/NVIDIA-NeMo/NeMo@1688cc3d6a9ade854f544987810c53f605dc86fc

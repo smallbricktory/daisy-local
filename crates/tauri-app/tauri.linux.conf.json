@@ -1,0 +1,17 @@
+{
+  "app": {
+    "security": {
+      "csp": "default-src 'self'; connect-src ipc: http://ipc.localhost; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'self' data: file:; object-src 'none'; frame-src 'none'",
+      "devCsp": "default-src 'self'; connect-src ipc: http://ipc.localhost ws://localhost:5173 http://localhost:5173; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; media-src 'self' data: file:; object-src 'none'; frame-src 'none'"
+    }
+  },
+  "bundle": {
+    "resources": {
+      "../../models/nemotron/nemotron-speech-streaming-en-0.6b-560ms-int8/encoder.int8.onnx": "models/nemotron/nemotron-speech-streaming-en-0.6b-560ms-int8/encoder.int8.onnx",
+      "../../models/nemotron/nemotron-speech-streaming-en-0.6b-560ms-int8/encoder.int8.onnx.data": "models/nemotron/nemotron-speech-streaming-en-0.6b-560ms-int8/encoder.int8.onnx.data",
+      "../../models/nemotron/nemotron-speech-streaming-en-0.6b-560ms-int8/decoder.onnx": "models/nemotron/nemotron-speech-streaming-en-0.6b-560ms-int8/decoder.onnx",
+      "../../models/nemotron/nemotron-speech-streaming-en-0.6b-560ms-int8/joiner.onnx": "models/nemotron/nemotron-speech-streaming-en-0.6b-560ms-int8/joiner.onnx",
+      "../../models/nemotron/nemotron-speech-streaming-en-0.6b-560ms-int8/tokens.txt": "models/nemotron/nemotron-speech-streaming-en-0.6b-560ms-int8/tokens.txt"
+    }
+  }
+}

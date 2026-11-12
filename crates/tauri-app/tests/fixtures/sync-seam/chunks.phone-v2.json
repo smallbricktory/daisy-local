@@ -1,0 +1,9 @@
+{
+  "schema": 2,
+  "model_id": "granite-embedding-97m-multilingual-r2",
+  "transcript_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "chunks": [
+    { "text": "Sam: Let's start with the widget.", "start_ms": 0 },
+    { "text": "Priya: The review moves to Thursday.", "start_ms": 754000 }
+  ]
+}

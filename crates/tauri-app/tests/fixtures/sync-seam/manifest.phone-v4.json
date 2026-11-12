@@ -1,0 +1,26 @@
+{
+  "schema_version": 4,
+  "session_id": "daisy-1700000000",
+  "created_at_unix_seconds": 1700000000,
+  "finalized_at_unix_seconds": 1700001900,
+  "sample_rate": 16000,
+  "channels": 1,
+  "title": "Widget planning",
+  "language": "fr-CA",
+  "interrupted": false,
+  "audio_purged": false,
+  "tag_ids": ["tag-0000000000000001"],
+  "dismissed_suggested_tag_ids": [],
+  "speaker_map": [
+    { "cluster_id": 0, "display_name": "Sam", "email": "sam@example.com", "contact_id": "c-0000000000000001" },
+    { "cluster_id": 1, "display_name": "Priya", "match_confidence": 0.82 }
+  ],
+  "chunks": [
+    { "index": 0, "mic_wav_relative": "chunks/0000/mic.m4a", "started_at_unix_seconds": 1700000000, "ended_at_unix_seconds": 1700000300, "duration_seconds": 300.0, "mic_samples": 4800000, "mic_host_ns": 0 },
+    { "index": 1, "mic_wav_relative": "chunks/0001/mic.m4a", "started_at_unix_seconds": 1700000300, "ended_at_unix_seconds": 1700000600, "duration_seconds": 300.0, "mic_samples": 4800000, "mic_host_ns": 300000000000 }
+  ],
+  "recording_segments": [
+    { "first_chunk_index": 0, "last_chunk_index": 1, "started_at_unix_seconds": 1700000000, "stopped_at_unix_seconds": 1700000600 }
+  ],
+  "phone_only_future_key": { "kept": "by both readers" }
+}

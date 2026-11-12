@@ -1,0 +1,55 @@
+# Handoff — smbr-daisy-app (2026-11-09 11:00 MST)
+
+## Newest entry
+
+Session back on dev-dyoo/xenonite (2026-11-09 12:45 MST); the dev-ai-agent entry is `docs/handoffs/2026-11-09-1100.md`. No VPN in use any more (owner).
+
+**Shipped / done**
+- `7eefec75` phone-import dedup on main; main CI 42425215587 green 6/6.
+- Concurrent hellos (iOS `6ed7b5b6` races addresses 275 ms apart): harmless. Test `two_hellos_from_one_phone_at_once_both_answer_and_import_once` merged as `bd785c8a`; CI 42689274246 green 6/6 (Windows UI passed on rerun after the BRIO replug; a Snagit camera prompt had held the runner desktop; Snagit camera is Deny on astrophage, owner), 20/20 on macOS, sync binaries + 294 lib sync tests pass, review clean. Answer sent to smbr-daisy-main. The dev-ai-agent copy of this test (unreadable from dev-dyoo) is superseded.
+
+**Machines (2026-11-09 12:40 MST)**
+- xi (172.16.0.152) down: no ping; `daisy-136a-test` gone. Steps for the owner given in chat (power on, log in as manos).
+- astrophage (172.16.0.101) pings, ssh :22 times out; runners `wsl-ubuntu-astrophage` and `win-host-ASTROPHAGE` offline. `mac-host` online.
+- Pixel 9 `57250DLAQ0017N` on rocky USB, adb `device`, Play 1.0 (18), Wi-Fi 172.16.0.144. xenonite 172.16.0.150 (en0) / .151 (en8), macOS firewall off.
+
+**Next, in order**
+1. xi is back and `daisy-136a-test` runs 1.3.6-e again (2026-11-09 13:02); the Pixel re-paired with xi by an IPv4-host QR at 16:55 (hello OK). The owner dropped the IPv4-fallback device proof (16:58).
+2. At release: stop `daisy-136a-test`, remove `xi:~/dev/smbr-daisy-app`, remove xi's VPN ufw rule.
+
+**Still running**: notes-bug round-2 form at http://172.16.0.150:3333 (iOS: not reproduced on the physical iPhone 15 Pro Max either; answers go to smbr-daisy-ios).
+
+## Open items
+- Notes-bug decision form at http://172.16.0.150:3337 (iOS: Done doesn't close notes; not reproduced on 24 simulator variants; physical iPhone 15 Pro Max run waits on the owner's UI-automation passcode). — first seen 2026-11-07.
+- `2026-10-sample-true-timeline-<machine>` never completes on a profile whose recordings were cleared (Settings › Storage keeps only `meeting.opus`): such sessions "wait" forever by design (`migrations.rs:1036-1038`, test `a_session_whose_audio_is_not_here_waits_for_it`), costing one WARN and a manifest scan per unlock; sealing is not blocked (measured: seal ran 18 ms after the failure). A fix needs an "audio cleared" mark distinguishing it from WAVs still syncing — design call for smbr-daisy-main — first seen 2026-11-07.
+- Daisy window captures blank white in spectacle on xi (1.3.6-a and v1.3.5 alike; DOM renders); physical-screen glance pending — first seen 2026-10-28.
+- Licence client has no certificate pinning (`post_json`, `crates/tauri-app/src/commands/license.rs`): out of scope by coordinator ruling D, 2026-11-03 — first seen 2026-11-03.
+- xi ufw allows 7845/tcp from 10.189.72.0/24 (VPN; owner, 2026-11-06). Remove with `ssh -J astrophage xi 'sudo ufw delete allow proto tcp from 10.189.72.0/24 to any port 7845'` if VPN sync stays unused — first seen 2026-11-06.
+- VPN sync: the pair reply's `.local` host made a VPN-paired phone unable to sync. iOS `fe8ff5b6` now keeps the QR's reached IPv4 address; desktop unchanged. Owner chose LAN-only for now, 2026-11-06.
+- xenonite Data volume ran full twice on 2026-11-05; deleting `target/debug/incremental` there waits on the owner (via smbr-daisy-main) — first seen 2026-11-05.
+- #153 flaky `sync_seam_matrix::a_phone_killed_part_way_through_resumes_where_it_stopped` — first seen 2026-10-20.
+- `feat/direct-wifi` parked (coordinator, 2026-10-28); AWDL protocol `v` 5→6 — owner's decision, first seen 2026-10-17.
+- Automatic Windows sign-in on astrophage so the CI runner survives reboots — owner's decision, first seen 2026-10-18.
+
+## Standing traps
+- **dev-ai-agent cargo**: no `~/.cargo` and the sandbox blocks creating it. Run cargo with `CARGO_HOME=~/dev/smbr-daisy-app/cargo-home CARGO_HTTP_CAINFO="$SSL_CERT_FILE" CARGO_NET_GIT_FETCH_WITH_CLI=true` (the gateway re-signs TLS; libgit2 rejects it without these).
+- **dev-ai-agent ssh**: no keys; xi, astrophage and xenonite are reachable only from dev-dyoo. LAN hosts outside the gateway (e.g. 192.168.0.127) are unreachable.
+- `ci.yml` has `cancel-in-progress: true`: any push to main cancels the running main CI. Docs-only commits (handoffs) carry `[skip ci]`; otherwise push after the run ends.
+- xi `daisy-136a-test` is a transient `systemd-run` unit: gone after reboot/logout. Relaunch: `systemd-run --user --unit=daisy-136a-test --setenv=DAISY_PROFILE_DIR=$HOME/Sync/daisy/profile-xi --setenv=WEBKIT_INSPECTOR_HTTP_SERVER=127.0.0.1:9333 $HOME/Sync/daisy/Daisy_1.3.6-e_c9187bed_amd64.AppImage`. xi has passwordless sudo, but firewall/avahi changes are blocked by the permission classifier.
+- Pairing keys for phones go to `~/dev/smbr-daisy-app/pairing-xi/key.txt` (0600), never into another repo or a message; xi holds one key at a time, so queue a second request until the first window closes.
+- Heavy work on astrophage beside a CI run flakes it (#155, Windows webview timeouts); check `gh run list` first.
+- smbr-daisy-main coordinates merges, builds and releases; releases tag only on its or the owner's word.
+- Never run 1.3.6-a against xenonite's production profile; a profile opened by 1.3.6-a is one-way for sessions (1.3.5 unlocks the vault but cannot read sealed sessions). Release builds ignore `DAISY_CONFIG_DIR` (ui-test only).
+- Native UI runs on the Mac take window focus; ask before starting one while the owner is at the machine. WebKit throttles timers while the screen is locked, which invalidates spec 25 readings.
+- astrophage has no ssh key for xi; relay files `ssh astrophage cat … | ssh xi 'cat > …'`. `playback_file` is Linux-only: its tests run on astrophage, not the Mac.
+- xi's inspector (`wk.py`) does not await promises: store results in a page variable, read them in a second call; wrap `const` in an IIFE. Pairing keys go to `~/dev/smbr-daisy-app/pairing-xi/key.txt` (0600) via a python reader, never printed.
+- profile-xi holds the tester's real tags and voiceprints; test with additive tags only.
+- `win-host-ASTROPHAGE` goes offline after every reboot: `ssh astrophage '/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -ExecutionPolicy Bypass -File "G:\actions-runner\start-runner.ps1"'`.
+- A Windows prompt in front of astrophage's desktop fails the Windows UI job at "Runner desktop foreground".
+- GitHub artifact storage quota is full: native UI artifacts stay on astrophage's runner disk.
+- Notices must be generated on Linux. `cargo update -p <crate>` on the Mac re-resolves windows-sys; edit only the target entries in Cargo.lock.
+- `pgrep -f`/`pkill -f` inside `ssh host '...'` match the ssh command itself.
+- xenonite cannot reach xi's ssh directly (VPN path): use `ssh -J astrophage xi`.
+- `cargo test -p tauri-app` stops at the first failing binary; pass `--no-fail-fast`, count with `grep -a`.
+- e2e:browser under Node 26 hangs on a Chrome bump (wdio's unzip truncates Chrome-for-Testing): stage it by hand per memory `project_node26_extract_zip_truncation` and run under `perl -e 'alarm 600; exec @ARGV'`.
+- Tests that touch sealed sessions must hold the keyring test guard (`crate::test_keys`, `tests/keys/mod.rs`).

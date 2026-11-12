@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Daisy — design system</title>
+    <link rel="stylesheet" href="/src/styles/reset.css" />
+    <link rel="stylesheet" href="/src/styles/workspace.css" />
+    <style>
+      /* The gallery draws itself with the tokens it documents: if a tier or a
+         step is wrong, this page is wrong the same way the app is. */
+      body { font-family: var(--font-ui); color: var(--text); }
+
+      .g-bar {
+        position: sticky; top: 0; z-index: 10;
+        display: flex; align-items: center; gap: var(--space-16);
+        padding: var(--space-8) var(--space-24);
+        background: var(--surface); border-bottom: var(--rule);
+      }
+      .g-bar h1 { font-family: var(--font-display); font-size: var(--t-title); margin: 0; }
+      .g-bar .g-sub { font-size: var(--t-small); color: var(--text-dim); margin-right: auto; }
+      .g-seg { display: flex; border: var(--rule); border-radius: var(--r-2); overflow: hidden; }
+      .g-seg button {
+        font: inherit; font-size: var(--t-ui);
+        padding: 6px 12px; border: 0; background: transparent; color: var(--text-2);
+        cursor: pointer; transition: background var(--dur-state) var(--ease);
+      }
+      .g-seg button + button { border-left: var(--rule); }
+      .g-seg button[aria-pressed="true"] { background: var(--gold); color: var(--on-gold); }
+
+      .g-wrap { max-width: 1040px; margin: 0 auto; padding: var(--space-32) var(--space-24) var(--space-48); }
+      section { margin-bottom: var(--space-48); }
+      section > h2 {
+        font-family: var(--font-display); font-size: var(--t-title);
+        margin: 0 0 var(--space-8);
+      }
+      section > .g-note {
+        font-size: var(--t-small); color: var(--text-dim);
+        max-width: 66ch; margin: 0 0 var(--space-24);
+      }
+      .g-flag {
+        display: inline-block; font-size: var(--t-meta); letter-spacing: .04em;
+        text-transform: uppercase; color: var(--on-record);
+        background: var(--record-fill); padding: 2px 6px; border-radius: var(--r-1);
+        vertical-align: 2px; margin-left: var(--space-8);
+      }
+
+      /* Token tables — name, rendered sample, resolved value. */
+      .g-grid { display: grid; gap: var(--space-16); }
+      .g-grid--swatch { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+      .g-sw { border: var(--rule); border-radius: var(--r-2); overflow: hidden; background: var(--surface); }
+      .g-sw__chip { height: 56px; border-bottom: var(--rule); }
+      .g-sw__name { font-family: var(--font-mono); font-size: var(--t-meta); padding: 6px 8px 0; }
+      .g-sw__val { font-family: var(--font-mono); font-size: var(--t-meta); color: var(--text-dim); padding: 0 8px 6px; }
+
+      /* Elevation: the tiers drawn as they actually nest. */
+      .g-tier { padding: var(--space-16); border-radius: var(--r-3); }
+      .g-tier__label { font-family: var(--font-mono); font-size: var(--t-meta); color: var(--text-dim); margin-bottom: var(--space-8); }
+      .g-tier--page { background: var(--bg); border: var(--rule); }
+      .g-tier--surface { background: var(--surface); border: var(--rule); box-shadow: var(--shadow-raised); }
+      .g-tier--raised { background: var(--raised); border: var(--rule); box-shadow: var(--shadow-raised); }
+      .g-tier--overlay { background: var(--overlay); border: var(--rule); box-shadow: var(--shadow-overlay); }
+
+      /* Material: the chrome drawn over the page it tints, so the blur and the
+         mix are visible rather than described. */
+      .g-glass {
+        position: relative; height: 150px; overflow: hidden;
+        border: var(--rule); border-radius: var(--r-3);
+        background:
+          radial-gradient(600px 300px at 8% 0%, var(--wash), transparent 60%),
+          var(--bg);
+      }
+      .g-glass__behind { padding: var(--space-16); font-size: var(--t-read); color: var(--text-2); }
+      .g-glass__pane {
+        position: absolute; left: 0; right: 0; bottom: 0; padding: var(--space-16);
+        background: var(--glass-surface); backdrop-filter: var(--glass-blur);
+        border-top: var(--rule);
+      }
+      .g-glass__label { font-family: var(--font-mono); font-size: var(--t-meta); color: var(--text-dim); }
+
+      /* Type: every step over the same sentence, so the steps compare. */
+      .g-step { border-top: var(--rule); padding: var(--space-16) 0; display: grid; grid-template-columns: 150px 1fr; gap: var(--space-16); }
+      .g-step:first-of-type { border-top: 0; }
+      .g-step__meta { font-family: var(--font-mono); font-size: var(--t-meta); color: var(--text-dim); line-height: 1.6; }
+      .g-step__meta b { display: block; color: var(--text); font-size: var(--t-small); }
+      .g-step__sample { max-width: 66ch; }
+
+      .g-radius { display: flex; gap: var(--space-16); flex-wrap: wrap; align-items: flex-end; }
+      .g-radius figure { margin: 0; text-align: center; }
+      .g-radius .box { width: 88px; height: 88px; background: var(--raised); border: var(--rule); box-shadow: var(--shadow-raised); }
+      .g-radius figcaption { font-family: var(--font-mono); font-size: var(--t-meta); color: var(--text-dim); margin-top: 6px; }
+
+      .g-space { display: grid; gap: 6px; }
+      .g-space__row { display: flex; align-items: center; gap: var(--space-16); }
+      .g-space__bar { height: 14px; background: var(--gold); border-radius: var(--r-1); }
+      .g-space__name { font-family: var(--font-mono); font-size: var(--t-meta); color: var(--text-dim); width: 150px; }
+
+      .g-split { display: grid; grid-template-columns: 1fr 1fr; height: calc(100vh - 0px); }
+      .g-split iframe { border: 0; border-right: var(--rule); width: 100%; height: 100%; }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      const params = new URLSearchParams(location.search);
+      const initial = params.get('theme') === 'dark' ? 'dark' : 'light';
+      document.documentElement.dataset.theme = initial;
+
+      /** Custom properties as the stylesheet declares them, in source order. */
+      function readTokens(selector) {
+        const out = new Map();
+        for (const sheet of document.styleSheets) {
+          let rules;
+          try { rules = sheet.cssRules; } catch { continue; }
+          for (const rule of rules) {
+            if (rule.selectorText !== selector) continue;
+            for (const prop of rule.style) {
+              if (prop.startsWith('--')) out.set(prop, rule.style.getPropertyValue(prop).trim());
+            }
+          }
+        }
+        return out;
+      }
+
+      const resolve = (name) =>
+        getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+      const SENTENCE =
+        'The meeting recorder keeps every recording on this machine, and the transcript with it.';
+
+      function el(tag, attrs = {}, ...kids) {
+        const n = document.createElement(tag);
+        for (const [k, v] of Object.entries(attrs)) {
+          if (k === 'class') n.className = v;
+          else if (k === 'style') n.style.cssText = v;
+          else n.setAttribute(k, v);
+        }
+        for (const kid of kids) n.append(kid);
+        return n;
+      }
+
+      function section(title, note, body, flag) {
+        const h = el('h2', {}, title);
+        if (flag) h.append(el('span', { class: 'g-flag' }, flag));
+        return el('section', {}, h, el('p', { class: 'g-note' }, note), body);
+      }
+
+      function render() {
+        const light = readTokens(':root');
+        const dark = readTokens(':root[data-theme="dark"]');
+        const declared = [...light.keys()];
+
+        // Prefixes are matched with their separator: --text and --record are
+        // colour roles, --t-ui and --r-2 are not.
+        const isColour = (n) =>
+          !/^--(font-|t-|lh-|r-|dur-|ease|space-|shadow-|ring|rule|control-h|rail-width|bubble-radius|glass-)/.test(n);
+
+        const wrap = el('div', { class: 'g-wrap' });
+
+        // --- Elevation -----------------------------------------------------
+        const tiers = el('div', { class: 'g-tier g-tier--page' },
+          el('div', { class: 'g-tier__label' }, '--bg · page'),
+          el('div', { class: 'g-tier g-tier--surface' },
+            el('div', { class: 'g-tier__label' }, '--surface + --shadow-raised · cards, panels, rails'),
+            el('div', { class: 'g-tier g-tier--raised' },
+              el('div', { class: 'g-tier__label' }, '--raised + --shadow-raised · inputs, controls'),
+              el('div', { class: 'g-tier g-tier--overlay' },
+                el('div', { class: 'g-tier__label' }, '--overlay + --shadow-overlay · menus, modals, toasts'),
+                el('div', { style: 'font-size: var(--t-ui); color: var(--text-2)' },
+                  'Four tiers, nested as they nest on screen. Light separates with shadow, dark with lightness.'),
+              ))));
+        wrap.append(section('Elevation', 'A tier is a background, a border and one shadow. No component writes its own.', tiers));
+
+        // --- Material ------------------------------------------------------
+        const glass = el('div', { class: 'g-glass' },
+          el('div', { class: 'g-glass__behind' },
+            'Behind the chrome sits the page it tints. Running text never sits on glass.'),
+          el('div', { class: 'g-glass__pane' },
+            el('div', { class: 'g-glass__label' },
+              `--glass-surface ${resolve('--glass-surface')} + --glass-blur ${resolve('--glass-blur')}`),
+            el('div', { style: 'font-size: var(--t-ui)' },
+              'Blurred: the page-header band, the menus, the toast stack. '
+              + 'Tinted without a blur: the rail, which the page never passes behind.')));
+        wrap.append(section(
+          'Material',
+          'Chrome lets the page tint through; content stays opaque. Three settings turn it off, '
+          + 'all landing on these four tokens.',
+          glass,
+          'off under Increase Contrast, reduced transparency, and macOS Reduce Transparency',
+        ));
+
+        // --- Colour --------------------------------------------------------
+        const swatches = el('div', { class: 'g-grid g-grid--swatch' });
+        for (const name of declared.filter(isColour)) {
+          swatches.append(el('div', { class: 'g-sw' },
+            el('div', { class: 'g-sw__chip', style: `background: var(${name})` }),
+            el('div', { class: 'g-sw__name' }, name),
+            el('div', { class: 'g-sw__val' }, resolve(name) || '—')));
+        }
+        const missing = declared.filter((n) => isColour(n) && !dark.has(n));
+        wrap.append(section(
+          'Colour roles',
+          `${declared.filter(isColour).length} roles. Every one answers "what is this for". ` +
+          (missing.length
+            ? `${missing.length} inherit the light value on dark: ${missing.join(', ')}.`
+            : 'Every role is defined in both themes.'),
+          swatches));
+
+        // --- Type ----------------------------------------------------------
+        const steps = el('div', {});
+        for (const name of declared.filter((n) => /^--t-/.test(n))) {
+          const sample = el('div', { class: 'g-step__sample', style: `font-size: var(${name})` }, SENTENCE);
+          const meta = el('div', { class: 'g-step__meta' }, el('b', {}, name), resolve(name));
+          const row = el('div', { class: 'g-step' }, meta, sample);
+          steps.append(row);
+          // Computed line-height is read after layout, below.
+          row.dataset.token = name;
+        }
+        // Leading: ratios, so one set composes with every step.
+        const leads = el('div', {});
+        for (const [name, what] of [
+          ['--lh-text', 'running text — prose, transcript, help copy'],
+          ['--lh-tight', 'headings, display lines, stacked meta'],
+          ['--lh-flush', 'a glyph in a box the row already sizes'],
+        ]) {
+          leads.append(el('div', { class: 'g-step' },
+            el('div', { class: 'g-step__meta' }, el('b', {}, name), resolve(name)),
+            el('div', { class: 'g-step__sample', style: `line-height: var(${name})` },
+               `${what}. ${SENTENCE} ${SENTENCE}`)));
+        }
+        wrap.append(section(
+          'Type ramp',
+          'Six sizes. Leading is three ratios rather than one value per step, because the same ' +
+          'step runs as prose in one place and sits on a single line in another. Ratios compose, ' +
+          'so a size written inline leads correctly without carrying a paired token.',
+          steps));
+        wrap.append(section('Leading', 'Each ratio over the same two sentences, at the reading size.', leads));
+
+        // --- Radius --------------------------------------------------------
+        const radii = el('div', { class: 'g-radius' });
+        for (const name of declared.filter((n) => /^--(r-|bubble-radius)/.test(n))) {
+          radii.append(el('figure', {},
+            el('div', { class: 'box', style: `border-radius: var(${name})` }),
+            el('figcaption', {}, `${name} · ${resolve(name)}`)));
+        }
+        wrap.append(section('Radius ladder', 'Four steps and a pill. A circle is 50%, not a step. Nested corners derive from the container.', radii));
+
+        // --- Motion --------------------------------------------------------
+        const motion = el('div', { class: 'g-grid', style: 'grid-template-columns: repeat(auto-fill, minmax(240px, 1fr))' });
+        for (const [name, css] of [
+          ['--dur-state', 'background var(--dur-state) var(--ease), color var(--dur-state) var(--ease)'],
+          ['--dur-move', 'transform var(--dur-move) var(--ease)'],
+        ]) {
+          const demo = el('div', {
+            class: 'g-tier g-tier--raised',
+            style: `transition: ${css}; cursor: pointer`,
+          }, el('div', { class: 'g-tier__label' }, `${name} · ${resolve(name)}`),
+             el('div', { style: 'font-size: var(--t-ui)' }, 'hover me'));
+          demo.addEventListener('mouseenter', () => {
+            if (name === '--dur-state') demo.style.background = 'var(--gold-tint)';
+            else demo.style.transform = 'translateX(16px)';
+          });
+          demo.addEventListener('mouseleave', () => {
+            demo.style.background = '';
+            demo.style.transform = '';
+          });
+          motion.append(demo);
+        }
+        wrap.append(section('Motion', 'Two durations and one curve. Reduced motion collapses both to zero, which is why every transition names one.', motion));
+
+        // --- Spacing -------------------------------------------------------
+        const spacing = el('div', { class: 'g-space' });
+        for (const name of declared.filter((n) => /^--space-/.test(n))) {
+          spacing.append(el('div', { class: 'g-space__row' },
+            el('div', { class: 'g-space__name' }, `${name} · ${resolve(name)}`),
+            el('div', { class: 'g-space__bar', style: `width: var(${name})` })));
+        }
+        wrap.append(section(
+          'Spacing',
+          'A 4px grid, named by size so a step can be added without renumbering the ladder under ' +
+          'the rules already using one. The stylesheet also speaks a denser 2px rhythm — 10px, 6px, ' +
+          '14px, 2px — which is where its chips, rows and controls get their density. Resolving ' +
+          'those onto the ladder changes how the app looks, so it is a decision per component ' +
+          'rather than a rename; the ui-consistency ratchet holds the count meanwhile.',
+          spacing,
+          'partly adopted'));
+
+        document.body.append(
+          el('div', { class: 'g-bar' },
+            el('h1', {}, 'Daisy'),
+            el('span', { class: 'g-sub' }, 'design system'),
+            el('div', { class: 'g-seg' },
+              themeButton('light', initial),
+              themeButton('dark', initial),
+              splitButton())),
+          wrap);
+
+        // Leading is a computed value, so it is read from the rendered sample.
+        for (const row of steps.children) {
+          const lh = getComputedStyle(row.querySelector('.g-step__sample')).lineHeight;
+          row.querySelector('.g-step__meta').append(el('div', {}, `line-height ${lh}`));
+        }
+      }
+
+      function themeButton(theme, current) {
+        const b = el('button', { type: 'button' }, theme);
+        b.setAttribute('aria-pressed', String(theme === current));
+        b.addEventListener('click', () => { location.search = `?theme=${theme}`; });
+        return b;
+      }
+
+      function splitButton() {
+        const b = el('button', { type: 'button' }, 'split');
+        b.setAttribute('aria-pressed', 'false');
+        b.addEventListener('click', () => { location.search = '?view=split'; });
+        return b;
+      }
+
+      // The page reads its tokens out of the CSSOM, so it cannot draw before
+      // the stylesheets are in it. Served by vite they arrive injected, ahead
+      // of this module; served as plain files from a static directory the
+      // <link>s can still be loading here, and the gallery renders empty.
+      // `load` is the event that means both are parsed.
+      const start = () => {
+        if (params.get('view') === 'split') {
+          document.body.innerHTML =
+            '<div class="g-split">' +
+            '<iframe src="?theme=light" title="light"></iframe>' +
+            '<iframe src="?theme=dark" title="dark"></iframe>' +
+            '</div>';
+        } else {
+          render();
+        }
+      };
+      if (document.readyState === 'complete') start();
+      else window.addEventListener('load', start, { once: true });
+    </script>
+  </body>
+</html>

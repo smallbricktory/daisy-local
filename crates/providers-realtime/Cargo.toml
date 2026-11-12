@@ -1,0 +1,15 @@
+[package]
+name = "providers-realtime"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+transcript = { path = "../transcript" }
+thiserror.workspace = true
+tokio.workspace = true
+async-trait.workspace = true
+
+[dev-dependencies]
+tokio.workspace = true

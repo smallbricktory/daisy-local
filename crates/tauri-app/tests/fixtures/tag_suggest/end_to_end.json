@@ -1,0 +1,138 @@
+{
+  "comment": "End-to-end parity contract. Each case: library state in, tag_suggest_for_session(current_session) out. iOS copies this file.",
+  "cases": [
+    {
+      "name": "recurring meeting inherits last week minus applied and dismissed",
+      "tags": [
+        { "id": "t1", "name": "Coastline", "vocab_md": null },
+        { "id": "t2", "name": "Standup", "vocab_md": null },
+        { "id": "t3", "name": "Brewhaven", "vocab_md": "BH-Cloud, brew kettle" }
+      ],
+      "sessions": [
+        { "session_id": "prev", "finalized_at_unix_seconds": 100, "title": "Coastline weekly",
+          "tag_ids": ["t1", "t2", "t3"], "calendar": { "provider": "s", "event_id": "uid-1" } },
+        { "session_id": "cur", "finalized_at_unix_seconds": 200, "title": "Coastline weekly",
+          "tag_ids": ["t1"], "dismissed_suggested_tag_ids": ["t2"],
+          "calendar": { "provider": "s", "event_id": "uid-1" },
+          "transcript_md": "We reviewed BH-Cloud and the brew kettle." }
+      ],
+      "current_session": "cur",
+      "expect": {
+        "last_time": { "source_session_id": "prev", "tag_ids": ["t3"] },
+        "vocab": [ { "tag_id": "t3", "total_hits": 2 } ]
+      }
+    },
+    {
+      "name": "generic title standoff yields no last-time suggestion",
+      "tags": [
+        { "id": "t1", "name": "Ops", "vocab_md": null }
+      ],
+      "sessions": [
+        { "session_id": "prev", "finalized_at_unix_seconds": 100, "title": "Standup",
+          "tag_ids": ["t1"] },
+        { "session_id": "cur", "finalized_at_unix_seconds": 200, "title": "Standup",
+          "tag_ids": [] }
+      ],
+      "current_session": "cur",
+      "expect": {
+        "last_time": null,
+        "vocab": []
+      }
+    },
+    {
+      "name": "vocab rescue on an untagged session with no matching prior",
+      "tags": [
+        { "id": "t1", "name": "Roadmap", "vocab_md": "kickoff, milestone" },
+        { "id": "t2", "name": "Budget", "vocab_md": "forecast" }
+      ],
+      "sessions": [
+        { "session_id": "cur", "finalized_at_unix_seconds": 1000, "tag_ids": [],
+          "transcript_md": "Team discussed the kickoff timeline. The milestone was reached today. forecast forecast forecast numbers were shared." }
+      ],
+      "current_session": "cur",
+      "expect": {
+        "last_time": null,
+        "vocab": [
+          { "tag_id": "t2", "total_hits": 3 },
+          { "tag_id": "t1", "total_hits": 2 }
+        ]
+      }
+    },
+    {
+      "name": "four qualifying vocab tags cap at three",
+      "tags": [
+        { "id": "t1", "name": "T1", "vocab_md": "delta" },
+        { "id": "t2", "name": "T2", "vocab_md": "charlie" },
+        { "id": "t3", "name": "T3", "vocab_md": "bravo" },
+        { "id": "t4", "name": "T4", "vocab_md": "alpha" }
+      ],
+      "sessions": [
+        { "session_id": "cur", "finalized_at_unix_seconds": 1000, "tag_ids": [],
+          "transcript_md": "alpha alpha alpha alpha alpha bravo bravo bravo bravo charlie charlie charlie delta delta" }
+      ],
+      "current_session": "cur",
+      "expect": {
+        "last_time": null,
+        "vocab": [
+          { "tag_id": "t4", "total_hits": 5 },
+          { "tag_id": "t3", "total_hits": 4 },
+          { "tag_id": "t2", "total_hits": 3 }
+        ]
+      }
+    },
+    {
+      "name": "no transcript yields no vocab suggestions",
+      "tags": [
+        { "id": "t1", "name": "Ops", "vocab_md": "runbook" }
+      ],
+      "sessions": [
+        { "session_id": "cur", "finalized_at_unix_seconds": 1000, "tag_ids": [] }
+      ],
+      "current_session": "cur",
+      "expect": {
+        "last_time": null,
+        "vocab": []
+      }
+    },
+    {
+      "name": "dismissed vocab tag is excluded while another candidate remains",
+      "tags": [
+        { "id": "t1", "name": "Ops", "vocab_md": "runbook" },
+        { "id": "t2", "name": "Sales", "vocab_md": "pipeline" }
+      ],
+      "sessions": [
+        { "session_id": "cur", "finalized_at_unix_seconds": 1000, "tag_ids": [],
+          "dismissed_suggested_tag_ids": ["t1"],
+          "transcript_md": "runbook runbook talk. pipeline pipeline notes." }
+      ],
+      "current_session": "cur",
+      "expect": {
+        "last_time": null,
+        "vocab": [ { "tag_id": "t2", "total_hits": 2 } ]
+      }
+    },
+    {
+      "name": "dismissed top-ranked vocab tag promotes the fourth-ranked tag (filter before cap)",
+      "tags": [
+        { "id": "t1", "name": "T1", "vocab_md": "alpha" },
+        { "id": "t2", "name": "T2", "vocab_md": "bravo" },
+        { "id": "t3", "name": "T3", "vocab_md": "charlie" },
+        { "id": "t4", "name": "T4", "vocab_md": "delta" }
+      ],
+      "sessions": [
+        { "session_id": "cur", "finalized_at_unix_seconds": 1000, "tag_ids": [],
+          "dismissed_suggested_tag_ids": ["t1"],
+          "transcript_md": "alpha alpha alpha alpha alpha alpha bravo bravo bravo bravo bravo charlie charlie charlie charlie delta delta delta" }
+      ],
+      "current_session": "cur",
+      "expect": {
+        "last_time": null,
+        "vocab": [
+          { "tag_id": "t2", "total_hits": 5 },
+          { "tag_id": "t3", "total_hits": 4 },
+          { "tag_id": "t4", "total_hits": 3 }
+        ]
+      }
+    }
+  ]
+}
