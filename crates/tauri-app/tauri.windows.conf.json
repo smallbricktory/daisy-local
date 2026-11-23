@@ -1,0 +1,11 @@
+{
+  "bundle": {
+    "resources": {
+      "../../models/nemotron/nemotron-speech-streaming-en-0.6b-560ms-int8/encoder.int8.onnx": "models/nemotron/nemotron-speech-streaming-en-0.6b-560ms-int8/encoder.int8.onnx",
+      "../../models/nemotron/nemotron-speech-streaming-en-0.6b-560ms-int8/encoder.int8.onnx.data": "models/nemotron/nemotron-speech-streaming-en-0.6b-560ms-int8/encoder.int8.onnx.data",
+      "../../models/nemotron/nemotron-speech-streaming-en-0.6b-560ms-int8/decoder.onnx": "models/nemotron/nemotron-speech-streaming-en-0.6b-560ms-int8/decoder.onnx",
+      "../../models/nemotron/nemotron-speech-streaming-en-0.6b-560ms-int8/joiner.onnx": "models/nemotron/nemotron-speech-streaming-en-0.6b-560ms-int8/joiner.onnx",
+      "../../models/nemotron/nemotron-speech-streaming-en-0.6b-560ms-int8/tokens.txt": "models/nemotron/nemotron-speech-streaming-en-0.6b-560ms-int8/tokens.txt"
+    }
+  }
+}

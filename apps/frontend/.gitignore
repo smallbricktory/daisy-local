@@ -1,0 +1,5 @@
+node_modules/
+dist/
+dist-ui-test/
+*.log
+.DS_Store

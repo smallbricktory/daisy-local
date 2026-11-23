@@ -1,0 +1,13 @@
+diff --git a/build/node.js b/build/node.js
+index de72da8a45dc7e897a33d6848e195bdc5f168e34..0000000000000000000000000000000000000000 100644
+--- a/build/node.js
++++ b/build/node.js
+@@ -587,7 +587,7 @@ async function startWebDriver(options) {
+ If you like to run a local browser session make sure to pick from one of the following browser names: ${Object.values(SUPPORTED_BROWSERNAMES).flat(Infinity)}`
+     );
+   }
+-  const port = await getPort();
++  const port = isChrome(caps.browserName) && caps["wdio:chromedriverOptions"]?.port || await getPort();
+   const cacheDir = getCacheDir(options, caps);
+   if (isChrome(caps.browserName)) {
+     const chromedriverOptions = caps["wdio:chromedriverOptions"] || {};

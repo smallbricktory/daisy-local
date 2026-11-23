@@ -1,0 +1,101 @@
+{
+  "comment": "Parity contract for the tag-suggestion matcher. iOS copies this file. Cases run as count_term_hits(fold(text), fold(term)) == expected.",
+  "cases": [
+    {
+      "name": "simple word",
+      "text": "Brewhaven shipped. brewhaven wins.",
+      "term": "Brewhaven",
+      "expected": 2
+    },
+    {
+      "name": "boundary blocks substring",
+      "text": "Brewhavenite is not it",
+      "term": "Brewhaven",
+      "expected": 0
+    },
+    {
+      "name": "case fold",
+      "text": "BREWHAVEN and BrewHaven",
+      "term": "brewhaven",
+      "expected": 2
+    },
+    {
+      "name": "hyphen literal",
+      "text": "ACME-2 launched. ACME 2 later.",
+      "term": "ACME-2",
+      "expected": 1
+    },
+    {
+      "name": "hyphen not matched by space",
+      "text": "ACME 2 only",
+      "term": "ACME-2",
+      "expected": 0
+    },
+    {
+      "name": "trailing plus non-word edge",
+      "text": "we use C++ here; C+ alone no",
+      "term": "C++",
+      "expected": 1
+    },
+    {
+      "name": "phrase flexible whitespace",
+      "text": "weekly  sync notes\nweekly\nsync",
+      "term": "weekly sync",
+      "expected": 2
+    },
+    {
+      "name": "phrase needs both words",
+      "text": "weekly meeting then sync",
+      "term": "weekly sync",
+      "expected": 0
+    },
+    {
+      "name": "curly apostrophe literal",
+      "text": "O’Brien spoke. O'Brien too.",
+      "term": "O’Brien",
+      "expected": 1
+    },
+    {
+      "name": "straight apostrophe distinct",
+      "text": "O’Brien spoke. O'Brien too.",
+      "term": "O'Brien",
+      "expected": 1
+    },
+    {
+      "name": "digits are word chars",
+      "text": "v2 shipped, rev2 no",
+      "term": "v2",
+      "expected": 1
+    },
+    {
+      "name": "cjk surrounded by cjk does not match",
+      "text": "定例会議です",
+      "term": "会議",
+      "expected": 0
+    },
+    {
+      "name": "cjk with boundary matches",
+      "text": "今日の 会議 です",
+      "term": "会議",
+      "expected": 1
+    },
+    {
+      "name": "punctuation boundary ok",
+      "text": "(Brewhaven), Brewhaven.",
+      "term": "Brewhaven",
+      "expected": 2
+    },
+    {
+      "name": "non-overlapping non-word term",
+      "text": "++++",
+      "term": "++",
+      "expected": 2
+    },
+    {
+      "name": "empty term",
+      "text": "anything",
+      "term": "",
+      "expected": 0
+    }
+  ]
+}

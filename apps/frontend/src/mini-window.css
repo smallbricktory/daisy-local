@@ -1,0 +1,59 @@
+/* Mini-window scoped resets (html.is-mini set in main.tsx). Light theme;
+   workspace.css vars are available — the mini loads the same bundle. No
+   `color-scheme` override: a dark value renders the whole window canvas
+   black. */
+html.is-mini, html.is-mini body, html.is-mini #root { margin: 0; height: 100%; overflow: hidden; }
+
+.mini {
+  display: flex; flex-direction: column; height: 100vh;
+  background: var(--bg); color: var(--text);
+  font: 12px/1.4 system-ui, sans-serif;
+  box-sizing: border-box;
+}
+.mini__bar {
+  display: flex; align-items: center; gap: var(--space-8);
+  padding: 5px 8px; background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  cursor: grab; user-select: none;
+}
+.mini__dot { width: 9px; height: 9px; border-radius: 50%; background: var(--text-dim); flex: none; }
+.mini__dot--rec {
+  color: var(--record); background: currentColor; box-shadow: var(--glow);
+  animation: pulse 1.6s ease-in-out infinite;
+  will-change: opacity;
+}
+.mini__dot--paused { background: var(--gold-hover); box-shadow: none; }
+.mini__time { font-variant-numeric: tabular-nums; font-weight: 600; }
+.mini__mode { color: var(--text-dim); font-size: var(--t-meta);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mini__expand { margin-left: auto; background: none; border: none; color: var(--text-dim);
+  cursor: pointer; font-size: var(--t-ui); line-height: var(--lh-flush); flex: none; }
+.mini__expand:hover { color: var(--text); }
+.mini__transcript { flex: 1; overflow-y: auto; padding: 5px 8px; }
+.mini__transcript p { margin: 0 0 3px; }
+.mini__placeholder { color: var(--text-dim); font-style: italic; }
+/* Far-side caption bubble; mirrors the main window's .turn.them tinting. */
+.mini__bubble {
+  background: var(--raised);
+  border-radius: var(--r-2);
+  border-bottom-left-radius: 4px;
+  padding: var(--space-4) var(--space-8);
+  margin: 0 0 4px;
+  width: fit-content;
+  max-width: 92%;
+}
+:root[data-theme="dark"] .mini__bubble {
+  background: color-mix(in srgb, var(--gold) 15%, var(--raised));
+}
+.mini__interim { color: var(--text-dim); }
+.mini__controls { display: flex; gap: 6px; padding: 5px 8px;
+  background: var(--surface); border-top: 1px solid var(--line); }
+.mini__btn { flex: 1; padding: var(--space-4); border: 1px solid var(--line); border-radius: var(--r-1);
+  background: var(--surface); color: var(--text); cursor: pointer; font-size: var(--t-small); }
+.mini__btn:hover { background: var(--gold-tint); }
+.mini__btn--stop { color: var(--danger); border-color: var(--danger); }
+/* Filled control: --record-fill carries --on-record text. Bare --record is
+   the signal colour for dots and rings, not for fills. */
+.mini__btn--rec { color: var(--on-record); background: var(--record-fill); border-color: var(--record-fill); font-weight: 600; }
+.mini__btn--rec:hover:not(:disabled) { filter: brightness(0.94); background: var(--record-fill); }
+.mini__btn--rec:disabled { opacity: 0.6; cursor: default; }

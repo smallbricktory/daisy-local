@@ -1,0 +1,82 @@
+{
+  "about": "Recovery words: five BIP-39 English words, lower case, joined by single spaces (UTF-8), stretched with PBKDF2-HMAC-SHA256 at `iterations` over `salt_hex` to a 32-byte wrapping key, which seals `vault_key_hex` with AES-256-GCM under `nonce_hex` and no associated data. `wrapped_hex` is the ciphertext followed by the 16-byte tag. Fields only: vault_recovery.json's own bytes never cross platforms. `entry` lists typed text and the five words it reads as, or null where entry refuses it. Generated with Python's hashlib.pbkdf2_hmac and the cryptography package's AESGCM.",
+  "entry": [
+    {
+      "typed": "abandon zoo ladder act quantum",
+      "words": [
+        "abandon",
+        "zoo",
+        "ladder",
+        "act",
+        "quantum"
+      ]
+    },
+    {
+      "typed": "  ABANDON   Zoo\tladder\nACT quantum  ",
+      "words": [
+        "abandon",
+        "zoo",
+        "ladder",
+        "act",
+        "quantum"
+      ]
+    },
+    {
+      "typed": "1. aban, 2. zoo; 3. ladd - 4. act. 5. quan!",
+      "words": [
+        "abandon",
+        "zoo",
+        "ladder",
+        "act",
+        "quantum"
+      ]
+    },
+    {
+      "typed": "aband zoo ladde act quant",
+      "words": [
+        "abandon",
+        "zoo",
+        "ladder",
+        "act",
+        "quantum"
+      ]
+    },
+    {
+      "typed": "aba zoo ladder act quantum",
+      "words": null
+    },
+    {
+      "typed": "abandom zoo ladder act quantum",
+      "words": null
+    },
+    {
+      "typed": "abandon zoo ladder act",
+      "words": null
+    },
+    {
+      "typed": "abandon zoo ladder act quantum abandon",
+      "words": null
+    },
+    {
+      "typed": "abandon zoo ladder acts quantum",
+      "words": null
+    }
+  ],
+  "iterations": 600000,
+  "nonce_hex": "a0a1a2a3a4a5a6a7a8a9aaab",
+  "phrase": "abandon zoo ladder act quantum",
+  "salt_hex": "000102030405060708090a0b0c0d0e0f",
+  "v": 1,
+  "vault_key_hex": "202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f",
+  "word_list": "bitcoin/bips bip-0039/english.txt",
+  "word_list_sha256": "2f5eed53a4727b4bf8880d8f3f199efc90e58503646d9ff8eff3a2ed3b24dbda",
+  "words": [
+    "abandon",
+    "zoo",
+    "ladder",
+    "act",
+    "quantum"
+  ],
+  "wrapped_hex": "b18426b03534507ddfd14475ec546663cafef23c5940e4089a3dca3f23de9dd3d96253078cfebb17e662c0041fa0b728",
+  "wrapping_key_hex": "0ad8b776fe678e75a7000769ff08183aaa31e3b8eda0b8af21cc6844b5527a27"
+}

@@ -1,0 +1,13 @@
+*.o
+*.pc
+.*.swp
+*~
+.deps*
+.dirstamp
+.libs*
+build/
+depcomp
+install/
+subprojects/*/
+# The pinned abseil source and patch, so the build never reaches the network.
+!subprojects/packagecache/

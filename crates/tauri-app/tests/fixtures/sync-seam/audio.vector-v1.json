@@ -1,0 +1,18 @@
+{
+  "_note": "protocol.md §5 `audio`: SHA-256 of each chunk's plaintext bytes as lowercase hex, joined with \\n in manifest.phone-v4.json's `chunks` order, hashed again. `plaintext_utf8` stands in for the chunk file's bytes.",
+  "manifest": "manifest.phone-v4.json",
+  "chunks": [
+    {
+      "file": "chunks/0000/mic.m4a",
+      "plaintext_utf8": "daisy-seam-chunks/0000/mic.m4a",
+      "sha256": "cfd9a8a604f3ab5bb7042299c7c5dc499a5db0f4e723cc6199fad9d5c73b22f6"
+    },
+    {
+      "file": "chunks/0001/mic.m4a",
+      "plaintext_utf8": "daisy-seam-chunks/0001/mic.m4a",
+      "sha256": "50394b4a63f24f8e35aa21e23d2922c676cee1e4ae0f70d62e1430bd790624ca"
+    }
+  ],
+  "joined": "cfd9a8a604f3ab5bb7042299c7c5dc499a5db0f4e723cc6199fad9d5c73b22f6\n50394b4a63f24f8e35aa21e23d2922c676cee1e4ae0f70d62e1430bd790624ca",
+  "audio": "sha256:3e532a7ac2d6c85d2c24f519dbbff59dec35c2e8588a75621624ff3aa1c43fe3"
+}

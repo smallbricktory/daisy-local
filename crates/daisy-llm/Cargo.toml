@@ -1,0 +1,28 @@
+[package]
+name = "daisy-llm"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "daisy-llm"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+daisy-llm-protocol = { path = "../daisy-llm-protocol" }
+serde.workspace = true
+serde_json.workspace = true
+encoding_rs = "0.8"
+sysinfo = "0.33"
+llama-cpp-2 = { version = "0.1.156", default-features = false, features = ["common"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+llama-cpp-2 = { version = "0.1.156", default-features = false, features = ["common", "metal"] }
+
+[target.'cfg(not(target_os = "macos"))'.dependencies]
+llama-cpp-2 = { version = "0.1.156", default-features = false, features = ["common", "vulkan"] }
+
+[dev-dependencies]
+summarize = { path = "../summarize" }

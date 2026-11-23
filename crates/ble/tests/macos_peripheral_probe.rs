@@ -1,0 +1,96 @@
+// SPDX-License-Identifier: Elastic-2.0
+// Copyright (c) 2026 Apexis Solutions Inc. (dba Small Bricktory) — see LICENSE
+//! What one machine can prove about the peripheral: the radio powers on, a
+//! pairing's service is published without complaint, and the advertisement is
+//! running. A wake sent with nobody subscribed reports that nobody heard it.
+//!
+//! What one machine cannot prove: that the advertisement is discoverable. A
+//! Mac does not see its own advertisements. Discovery, the challenge round and
+//! a delivered notify need a second device: `scripts/ble-scan.sh` is that
+//! half, run on another Mac.
+//!
+//! Ignored by default; it needs a radio that is powered on:
+//!
+//! ```sh
+//! cargo test -p ble --test macos_peripheral_probe -- --ignored --nocapture
+//! ```
+#![cfg(target_os = "macos")]
+
+use std::sync::Arc;
+
+/// Keeps any 16-byte challenge and answers every read with one fixed value.
+struct Fixed;
+
+impl ble::Responder for Fixed {
+    fn challenge(&self, _central: &str, value: &[u8]) -> ble::Written {
+        if value.len() == 16 {
+            ble::Written::Kept
+        } else {
+            ble::Written::WrongLength
+        }
+    }
+    fn address(&self, _central: &str) -> Option<Vec<u8>> {
+        Some(b"sealed-address-payload".to_vec())
+    }
+}
+
+/// The uuids of one pairing, distinct per run so nothing stale can pass.
+fn uuids() -> (String, String, String, String) {
+    let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_micros() as u64;
+    (
+        format!("D4A87EF9-7B7A-4AD3-806E-{:012X}", stamp & 0xFFFF_FFFF_FFFF),
+        "0A23320A-898F-4334-8D10-93B7F079AEE2".to_string(),
+        "C5057A9F-691F-4D19-8510-395B1430A39E".to_string(),
+        "6F1C2B9E-3D4A-4B5C-9E8F-7A6B5C4D3E2F".to_string(),
+    )
+}
+
+fn powered_on(p: &ble::Peripheral) -> bool {
+    for _ in 0..50 {
+        if p.state() == ble::State::PoweredOn {
+            return true;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(100));
+    }
+    false
+}
+
+#[test]
+#[ignore = "needs a powered-on Bluetooth radio; takes a few seconds"]
+fn a_pairings_service_goes_on_the_air() {
+    let peripheral = ble::Peripheral::start().expect("the radio starts");
+    assert!(powered_on(&peripheral), "no powered-on radio to test with: {:?}", peripheral.state());
+
+    let (service, wake, address, challenge) = uuids();
+    peripheral.add_service(&service, &wake, &address, &challenge, Arc::new(Fixed)).expect("published");
+    // Advertising restarts on the CoreBluetooth queue.
+    for _ in 0..50 {
+        if peripheral.is_advertising() {
+            break;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(100));
+    }
+    assert!(peripheral.is_advertising(), "the service is being advertised");
+
+    // A second pairing joins the same advertisement.
+    let (service2, _, _, _) = uuids();
+    peripheral.add_service(&service2, &wake, &address, &challenge, Arc::new(Fixed)).expect("two phones, two services");
+    assert!(peripheral.is_advertising());
+
+    // With no subscriber the radio still accepts the wake; its answer says
+    // queued, not heard.
+    assert_eq!(peripheral.subscribers(&service), 0);
+    assert!(peripheral.notify(&service, b"sealed-wake-payload"));
+
+    drop(peripheral);
+}
+
+#[test]
+#[ignore = "needs a powered-on Bluetooth radio"]
+fn a_uuid_that_is_not_a_uuid_is_refused() {
+    let peripheral = ble::Peripheral::start().expect("the radio starts");
+    assert!(powered_on(&peripheral), "no powered-on radio to test with");
+    let err = peripheral.add_service("not-a-uuid", "also-not", "nor-this", "nor-that", Arc::new(Fixed)).unwrap_err();
+    assert!(matches!(err, ble::Error::Radio(_)), "{err:?}");
+    assert!(!peripheral.is_advertising(), "nothing was published, so nothing is on the air");
+}

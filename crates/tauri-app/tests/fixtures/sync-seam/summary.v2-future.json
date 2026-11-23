@@ -1,0 +1,12 @@
+{
+  "v": 2,
+  "session_id": "daisy-1700000000",
+  "generated_at_unix_seconds": 1700000700,
+  "tldr": "A short meeting with nothing else filled in.",
+  "action_items": [
+    { "task": "Send the agenda", "owner": "Sam", "priority": "high" },
+    "Book the room"
+  ],
+  "chapters": ["Opening", { "title": "Close", "start_ms": 120000 }],
+  "mood": "unknown-top-level-key-readers-ignore-this"
+}
